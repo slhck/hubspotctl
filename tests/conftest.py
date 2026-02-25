@@ -126,8 +126,16 @@ def mock_pipelines() -> list[dict[str, Any]]:
             "id": "default",
             "label": "Sales Pipeline",
             "stages": [
-                {"id": "appointmentscheduled", "label": "Appointment Scheduled", "displayOrder": 0},
-                {"id": "qualifiedtobuy", "label": "Qualified To Buy", "displayOrder": 1},
+                {
+                    "id": "appointmentscheduled",
+                    "label": "Appointment Scheduled",
+                    "displayOrder": 0,
+                },
+                {
+                    "id": "qualifiedtobuy",
+                    "label": "Qualified To Buy",
+                    "displayOrder": 1,
+                },
                 {"id": "contractsent", "label": "Contract Sent", "displayOrder": 2},
                 {"id": "closedwon", "label": "Closed Won", "displayOrder": 3},
                 {"id": "closedlost", "label": "Closed Lost", "displayOrder": 4},
@@ -139,5 +147,10 @@ def mock_pipelines() -> list[dict[str, Any]]:
 @pytest.fixture
 def mock_owners() -> list[dict[str, Any]]:
     return [
-        {"id": "12345", "email": "owner@example.com", "firstName": "Sales", "lastName": "Rep"},
+        {
+            "id": "12345",
+            "email": "owner@example.com",
+            "firstName": "Sales",
+            "lastName": "Rep",
+        },
     ]

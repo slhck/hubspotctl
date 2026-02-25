@@ -42,7 +42,10 @@ class TestContactCommands:
 
     def test_search(self, cli: Any, mock_contacts: list[dict]) -> None:
         runner, client, _ = cli
-        client.search_contacts.return_value = {"results": [mock_contacts[0]], "total": 1}
+        client.search_contacts.return_value = {
+            "results": [mock_contacts[0]],
+            "total": 1,
+        }
         result = runner.invoke(main, ["contact", "search", "john"])
         assert result.exit_code == 0
         assert "John" in result.output
@@ -50,14 +53,18 @@ class TestContactCommands:
     def test_create(self, cli: Any) -> None:
         runner, client, _ = cli
         client.create_contact.return_value = {"id": "103", "properties": {}}
-        result = runner.invoke(main, ["contact", "create", "--email", "new@example.com"])
+        result = runner.invoke(
+            main, ["contact", "create", "--email", "new@example.com"]
+        )
         assert result.exit_code == 0
         assert "Created contact" in result.output
 
     def test_update(self, cli: Any) -> None:
         runner, client, _ = cli
         client.update_contact.return_value = {"id": "101", "properties": {}}
-        result = runner.invoke(main, ["contact", "update", "101", "--firstname", "Updated"])
+        result = runner.invoke(
+            main, ["contact", "update", "101", "--firstname", "Updated"]
+        )
         assert result.exit_code == 0
         assert "Updated contact" in result.output
 
@@ -84,7 +91,10 @@ class TestCompanyCommands:
 
     def test_search(self, cli: Any, mock_companies: list[dict]) -> None:
         runner, client, _ = cli
-        client.search_companies.return_value = {"results": [mock_companies[0]], "total": 1}
+        client.search_companies.return_value = {
+            "results": [mock_companies[0]],
+            "total": 1,
+        }
         result = runner.invoke(main, ["company", "search", "acme"])
         assert result.exit_code == 0
         assert "Acme" in result.output
@@ -127,14 +137,18 @@ class TestDealCommands:
     def test_search(self, cli: Any, mock_deals: list[dict]) -> None:
         runner, client, _ = cli
         client.search_deals.return_value = {"results": [mock_deals[0]], "total": 1}
-        result = runner.invoke(main, ["--format", "json", "deal", "search", "enterprise"])
+        result = runner.invoke(
+            main, ["--format", "json", "deal", "search", "enterprise"]
+        )
         assert result.exit_code == 0
         assert "Enterprise License" in result.output
 
     def test_create(self, cli: Any) -> None:
         runner, client, _ = cli
         client.create_deal.return_value = {"id": "203", "properties": {}}
-        result = runner.invoke(main, ["deal", "create", "--name", "New Deal", "--stage", "qualifiedtobuy"])
+        result = runner.invoke(
+            main, ["deal", "create", "--name", "New Deal", "--stage", "qualifiedtobuy"]
+        )
         assert result.exit_code == 0
         assert "Created deal" in result.output
 
