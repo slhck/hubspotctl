@@ -23,8 +23,7 @@ def login(ctx: Context, token: str | None) -> None:
     """
     if not token:
         print_info(
-            "Create a private app at: "
-            "HubSpot Settings > Integrations > Private Apps"
+            "Create a private app at: HubSpot Settings > Integrations > Private Apps"
         )
         print_info(
             "Required scopes: crm.objects.contacts.read, "

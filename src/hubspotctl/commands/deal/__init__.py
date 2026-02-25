@@ -291,13 +291,15 @@ def deal_stages(ctx: Context, pipeline: str | None) -> None:
     data = []
     for p in pipelines:
         for stage in p.get("stages", []):
-            data.append({
-                "pipeline_id": p["id"],
-                "pipeline": p.get("label", p["id"]),
-                "stage_id": stage["id"],
-                "stage": stage.get("label", stage["id"]),
-                "display_order": stage.get("displayOrder", ""),
-            })
+            data.append(
+                {
+                    "pipeline_id": p["id"],
+                    "pipeline": p.get("label", p["id"]),
+                    "stage_id": stage["id"],
+                    "stage": stage.get("label", stage["id"]),
+                    "display_order": stage.get("displayOrder", ""),
+                }
+            )
 
     format_output(
         data,

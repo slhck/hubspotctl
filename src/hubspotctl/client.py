@@ -97,9 +97,7 @@ class HubSpotClient:
             params["after"] = after
         return self.get("/crm/v3/objects/contacts", params=params)
 
-    def get_contact(
-        self, contact_id: str, properties: list[str] | None = None
-    ) -> dict:
+    def get_contact(self, contact_id: str, properties: list[str] | None = None) -> dict:
         """Get a contact by ID or email."""
         props = properties or DEFAULT_CONTACT_PROPERTIES
         params = {"properties": ",".join(props)}
@@ -118,9 +116,7 @@ class HubSpotClient:
 
     def create_contact(self, properties: dict[str, str]) -> dict:
         """Create a new contact."""
-        return self.post(
-            "/crm/v3/objects/contacts", json={"properties": properties}
-        )
+        return self.post("/crm/v3/objects/contacts", json={"properties": properties})
 
     def update_contact(self, contact_id: str, properties: dict[str, str]) -> dict:
         """Update a contact."""
@@ -180,9 +176,7 @@ class HubSpotClient:
 
     def create_deal(self, properties: dict[str, str]) -> dict:
         """Create a new deal."""
-        return self.post(
-            "/crm/v3/objects/deals", json={"properties": properties}
-        )
+        return self.post("/crm/v3/objects/deals", json={"properties": properties})
 
     def update_deal(self, deal_id: str, properties: dict[str, str]) -> dict:
         """Update a deal."""

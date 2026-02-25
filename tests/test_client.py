@@ -78,7 +78,9 @@ class TestHubSpotClient:
 
         mocker.patch.object(client._client, "request", return_value=mock_response)
 
-        contact = client.create_contact({"email": "new@example.com", "firstname": "New"})
+        contact = client.create_contact(
+            {"email": "new@example.com", "firstname": "New"}
+        )
 
         assert contact["id"] == "103"
 
@@ -170,7 +172,9 @@ class TestHubSpotClient:
 
         mocker.patch.object(client._client, "request", return_value=mock_response)
 
-        deal = client.create_deal({"dealname": "New Deal", "dealstage": "qualifiedtobuy"})
+        deal = client.create_deal(
+            {"dealname": "New Deal", "dealstage": "qualifiedtobuy"}
+        )
 
         assert deal["id"] == "203"
 

@@ -142,7 +142,14 @@ class TestContactCommands:
             with patch("hubspotctl.cli.HubSpotClient", return_value=mock_client):
                 result = runner.invoke(
                     main,
-                    ["contact", "create", "--email", "new@example.com", "--firstname", "New"],
+                    [
+                        "contact",
+                        "create",
+                        "--email",
+                        "new@example.com",
+                        "--firstname",
+                        "New",
+                    ],
                 )
 
         assert result.exit_code == 0
@@ -235,7 +242,9 @@ class TestDealCommands:
 
         with patch("hubspotctl.cli.Config", return_value=mock_config):
             with patch("hubspotctl.cli.HubSpotClient", return_value=mock_client):
-                result = runner.invoke(main, ["--format", "json", "deal", "search", "enterprise"])
+                result = runner.invoke(
+                    main, ["--format", "json", "deal", "search", "enterprise"]
+                )
 
         assert result.exit_code == 0
         assert "Enterprise License" in result.output
