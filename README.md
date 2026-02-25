@@ -35,9 +35,12 @@ Before using the CLI, you need to authenticate with HubSpot:
 3. Create a private app with the following scopes:
    - `crm.objects.contacts.read`, `crm.objects.contacts.write`
    - `crm.objects.contacts.sensitive.read`, `crm.objects.contacts.highly_sensitive.read`
+   - `crm.objects.companies.read`, `crm.objects.companies.write`
+   - `crm.objects.companies.sensitive.read`, `crm.objects.companies.highly_sensitive.read`
    - `crm.objects.deals.read`, `crm.objects.deals.write`
    - `crm.objects.deals.sensitive.read`, `crm.objects.deals.highly_sensitive.read`
    - `crm.schemas.contacts.read`, `crm.schemas.contacts.write`
+   - `crm.schemas.companies.read`, `crm.schemas.companies.write`
    - `crm.schemas.deals.read`, `crm.schemas.deals.write`
 4. Copy your access token and run:
 
@@ -74,6 +77,15 @@ hubspotctl contact show john@example.com
 
 # Create a contact
 hubspotctl contact create --email john@example.com --firstname John --lastname Doe
+
+# List companies
+hubspotctl company list
+
+# Search companies
+hubspotctl company search "acme"
+
+# Create a company
+hubspotctl company create --name "Acme Inc" --domain acme.com --industry Technology
 
 # List deals
 hubspotctl deal list
@@ -125,6 +137,19 @@ Contact management commands.
 | `contact create --email <email> [--firstname] [--lastname] [--phone] [--company] [--jobtitle] [--prop key=value]` | Create a new contact |
 | `contact update <contact_id> [--email] [--firstname] [--lastname] [--phone] [--company] [--jobtitle] [--prop key=value]` | Update a contact |
 | `contact delete <contact_id>` | Delete (archive) a contact |
+
+### `hubspotctl company`
+
+Company management commands.
+
+| Command | Description |
+|---------|-------------|
+| `company list [--limit] [--after] [--property]` | List companies |
+| `company show <company_id> [--property]` | Show details of a company |
+| `company search <query> [--limit] [--after] [--property]` | Search companies by name, domain, etc. |
+| `company create --name <name> [--domain] [--industry] [--phone] [--owner] [--prop key=value]` | Create a new company |
+| `company update <company_id> [--name] [--domain] [--industry] [--phone] [--owner] [--prop key=value]` | Update a company |
+| `company delete <company_id>` | Delete (archive) a company |
 
 ### `hubspotctl deal`
 

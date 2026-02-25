@@ -3,15 +3,34 @@
 from __future__ import annotations
 
 from typing import Any
+from unittest.mock import MagicMock, patch
 
 import pytest
+from click.testing import CliRunner
 
-from hubspotctl.client import HubSpotClient
+
+@pytest.fixture
+def runner() -> CliRunner:
+    return CliRunner()
+
+
+@pytest.fixture
+def cli(runner: CliRunner) -> Any:
+    """Provide (runner, mock_client) with Config and HubSpotClient patched."""
+    mock_client = MagicMock()
+    mock_config = MagicMock()
+    mock_config.get_token.return_value = "test_token"
+    mock_config.is_configured.return_value = True
+
+    with (
+        patch("hubspotctl.cli.Config", return_value=mock_config),
+        patch("hubspotctl.cli.HubSpotClient", return_value=mock_client),
+    ):
+        yield runner, mock_client, mock_config
 
 
 @pytest.fixture
 def mock_contacts() -> list[dict[str, Any]]:
-    """Sample contact data from HubSpot API."""
     return [
         {
             "id": "101",
@@ -42,7 +61,6 @@ def mock_contacts() -> list[dict[str, Any]]:
 
 @pytest.fixture
 def mock_deals() -> list[dict[str, Any]]:
-    """Sample deal data from HubSpot API."""
     return [
         {
             "id": "201",
@@ -70,23 +88,46 @@ def mock_deals() -> list[dict[str, Any]]:
 
 
 @pytest.fixture
+def mock_companies() -> list[dict[str, Any]]:
+    return [
+        {
+            "id": "301",
+            "properties": {
+                "name": "Acme Inc",
+                "domain": "acme.com",
+                "industry": "Technology",
+                "phone": "+1234567890",
+                "city": "San Francisco",
+                "state": "CA",
+                "country": "US",
+                "hubspot_owner_id": "12345",
+            },
+        },
+        {
+            "id": "302",
+            "properties": {
+                "name": "Globex Corp",
+                "domain": "globex.com",
+                "industry": "Manufacturing",
+                "phone": "+0987654321",
+                "city": "Springfield",
+                "state": "IL",
+                "country": "US",
+                "hubspot_owner_id": "12345",
+            },
+        },
+    ]
+
+
+@pytest.fixture
 def mock_pipelines() -> list[dict[str, Any]]:
-    """Sample pipeline data."""
     return [
         {
             "id": "default",
             "label": "Sales Pipeline",
             "stages": [
-                {
-                    "id": "appointmentscheduled",
-                    "label": "Appointment Scheduled",
-                    "displayOrder": 0,
-                },
-                {
-                    "id": "qualifiedtobuy",
-                    "label": "Qualified To Buy",
-                    "displayOrder": 1,
-                },
+                {"id": "appointmentscheduled", "label": "Appointment Scheduled", "displayOrder": 0},
+                {"id": "qualifiedtobuy", "label": "Qualified To Buy", "displayOrder": 1},
                 {"id": "contractsent", "label": "Contract Sent", "displayOrder": 2},
                 {"id": "closedwon", "label": "Closed Won", "displayOrder": 3},
                 {"id": "closedlost", "label": "Closed Lost", "displayOrder": 4},
@@ -97,20 +138,6 @@ def mock_pipelines() -> list[dict[str, Any]]:
 
 @pytest.fixture
 def mock_owners() -> list[dict[str, Any]]:
-    """Sample owner data."""
     return [
-        {
-            "id": "12345",
-            "email": "owner@example.com",
-            "firstName": "Sales",
-            "lastName": "Rep",
-        },
+        {"id": "12345", "email": "owner@example.com", "firstName": "Sales", "lastName": "Rep"},
     ]
-
-
-@pytest.fixture
-def mock_client(mocker: Any) -> HubSpotClient:
-    """Create a mock HubSpot client."""
-    client = HubSpotClient(token="test_token")
-    mocker.patch.object(client, "_client")
-    return client

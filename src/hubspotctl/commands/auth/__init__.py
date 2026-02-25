@@ -27,7 +27,8 @@ def login(ctx: Context, token: str | None) -> None:
         )
         print_info(
             "Required scopes: crm.objects.contacts.read, "
-            "crm.objects.contacts.write, crm.objects.deals.read, "
+            "crm.objects.contacts.write, crm.objects.companies.read, "
+            "crm.objects.companies.write, crm.objects.deals.read, "
             "crm.objects.deals.write (and optionally *.sensitive.read, "
             "*.highly_sensitive.read, crm.schemas.*.read/write)"
         )

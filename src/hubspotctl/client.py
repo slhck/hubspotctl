@@ -25,6 +25,17 @@ DEFAULT_DEAL_PROPERTIES = [
     "hubspot_owner_id",
 ]
 
+DEFAULT_COMPANY_PROPERTIES = [
+    "name",
+    "domain",
+    "industry",
+    "phone",
+    "city",
+    "state",
+    "country",
+    "hubspot_owner_id",
+]
+
 
 class HubSpotClient:
     """HTTP client for HubSpot CRM API v3."""
@@ -210,6 +221,66 @@ class HubSpotClient:
         if after:
             body["after"] = after
         return self.post("/crm/v3/objects/deals/search", json=body)
+
+    # Companies
+    def list_companies(
+        self,
+        limit: int = 20,
+        after: str | None = None,
+        properties: list[str] | None = None,
+    ) -> dict:
+        """List companies with pagination."""
+        props = properties or DEFAULT_COMPANY_PROPERTIES
+        params: dict[str, Any] = {
+            "limit": limit,
+            "properties": ",".join(props),
+        }
+        if after:
+            params["after"] = after
+        return self.get("/crm/v3/objects/companies", params=params)
+
+    def get_company(self, company_id: str, properties: list[str] | None = None) -> dict:
+        """Get a company by ID."""
+        props = properties or DEFAULT_COMPANY_PROPERTIES
+        params = {"properties": ",".join(props)}
+        return self.get(f"/crm/v3/objects/companies/{company_id}", params=params)
+
+    def create_company(self, properties: dict[str, str]) -> dict:
+        """Create a new company."""
+        return self.post("/crm/v3/objects/companies", json={"properties": properties})
+
+    def update_company(self, company_id: str, properties: dict[str, str]) -> dict:
+        """Update a company."""
+        return self.patch(
+            f"/crm/v3/objects/companies/{company_id}",
+            json={"properties": properties},
+        )
+
+    def delete_company(self, company_id: str) -> None:
+        """Delete (archive) a company."""
+        self.delete(f"/crm/v3/objects/companies/{company_id}")
+
+    def search_companies(
+        self,
+        query: str | None = None,
+        filters: list[dict] | None = None,
+        properties: list[str] | None = None,
+        limit: int = 20,
+        after: str | None = None,
+    ) -> dict:
+        """Search companies."""
+        props = properties or DEFAULT_COMPANY_PROPERTIES
+        body: dict[str, Any] = {
+            "properties": props,
+            "limit": limit,
+        }
+        if query:
+            body["query"] = query
+        if filters:
+            body["filterGroups"] = [{"filters": filters}]
+        if after:
+            body["after"] = after
+        return self.post("/crm/v3/objects/companies/search", json=body)
 
     # Pipelines
     def get_deal_pipelines(self) -> list[dict]:

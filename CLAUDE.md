@@ -1,6 +1,6 @@
 # hubspotctl
 
-CLI for HubSpot CRM (contacts, deals). Built with Click, httpx, keyring, Rich.
+CLI for HubSpot CRM (contacts, companies, deals). Built with Click, httpx, keyring, Rich.
 
 ## Development
 
@@ -16,6 +16,6 @@ uv run mypy src                            # Type checking
 
 Layered: CLI (Click) -> Context -> Client (httpx) / Config (keyring) / Output (Rich).
 
-Commands live in `src/hubspotctl/commands/{auth,contact,deal}/`.
+Commands live in `src/hubspotctl/commands/{auth,company,contact,deal}/`.
 
 HubSpot CRM API v3 base URL: `https://api.hubapi.com`. Auth via Bearer token (private app access token).

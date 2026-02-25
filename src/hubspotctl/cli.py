@@ -65,9 +65,10 @@ def main(ctx: Context, format: str, profile: str) -> None:
 
 def _register_commands() -> None:
     """Register command groups with the main CLI."""
-    from hubspotctl.commands import auth, contact, deal
+    from hubspotctl.commands import auth, company, contact, deal
 
     main.add_command(auth.auth)
+    main.add_command(company.company)
     main.add_command(contact.contact)
     main.add_command(deal.deal)
 
