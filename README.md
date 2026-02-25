@@ -39,6 +39,7 @@ Before using the CLI, you need to authenticate with HubSpot:
    - `crm.objects.companies.sensitive.read`, `crm.objects.companies.highly_sensitive.read`
    - `crm.objects.deals.read`, `crm.objects.deals.write`
    - `crm.objects.deals.sensitive.read`, `crm.objects.deals.highly_sensitive.read`
+   - `crm.objects.owners.read`
    - `crm.schemas.contacts.read`, `crm.schemas.contacts.write`
    - `crm.schemas.companies.read`, `crm.schemas.companies.write`
    - `crm.schemas.deals.read`, `crm.schemas.deals.write`
