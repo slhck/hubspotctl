@@ -3,6 +3,7 @@
 import click
 
 from hubspotctl.cli import Context, pass_context
+from hubspotctl.commands._notes import format_notes, NOTE_COLUMNS
 from hubspotctl.output import format_output, print_error, print_success, print_info
 
 
@@ -349,3 +350,56 @@ def deal_owners(ctx: Context) -> None:
         title="Owners",
         template="{firstname} {lastname} <{email}> ({id})",
     )
+
+
+@deal.command("add-note")
+@click.argument("deal_id")
+@click.option("--body", "-b", required=True, help="Note text")
+@pass_context
+def add_note(ctx: Context, deal_id: str, body: str) -> None:
+    """Add a note to a deal."""
+    client = ctx.ensure_client()
+
+    try:
+        note = client.add_note("deals", deal_id, body)
+        print_success(f"Added note {note['id']} to deal {deal_id}")
+    except Exception as e:
+        print_error(f"Failed to add note: {e}")
+
+
+@deal.command("notes")
+@click.argument("deal_id")
+@pass_context
+def list_notes(ctx: Context, deal_id: str) -> None:
+    """List notes for a deal."""
+    client = ctx.ensure_client()
+
+    try:
+        notes = client.list_notes("deals", deal_id)
+    except Exception as e:
+        print_error(f"Failed to list notes: {e}")
+        return
+
+    data = format_notes(notes)
+    format_output(
+        data,
+        ctx.format,
+        columns=NOTE_COLUMNS,
+        title=f"Notes for deal {deal_id}",
+        template="{id}: {body}",
+    )
+
+
+@deal.command("delete-note")
+@click.argument("note_id")
+@click.confirmation_option(prompt="Are you sure you want to delete this note?")
+@pass_context
+def delete_note(ctx: Context, note_id: str) -> None:
+    """Delete a note."""
+    client = ctx.ensure_client()
+
+    try:
+        client.delete_note(note_id)
+        print_success(f"Deleted note: {note_id}")
+    except Exception as e:
+        print_error(f"Failed to delete note: {e}")

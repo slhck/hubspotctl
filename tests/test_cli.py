@@ -74,6 +74,34 @@ class TestContactCommands:
         assert "No updates specified" in result.output
 
 
+class TestContactNoteCommands:
+    def test_add_note(self, cli: Any) -> None:
+        runner, client, _ = cli
+        client.add_note.return_value = {"id": "501", "properties": {}}
+        result = runner.invoke(
+            main, ["contact", "add-note", "101", "--body", "Test note"]
+        )
+        assert result.exit_code == 0
+        assert "Added note 501" in result.output
+        client.add_note.assert_called_once_with("contacts", "101", "Test note")
+
+    def test_notes(self, cli: Any) -> None:
+        runner, client, _ = cli
+        client.list_notes.return_value = [
+            {"id": "501", "properties": {"hs_note_body": "Note 1", "hs_timestamp": "1700000000000"}},
+        ]
+        result = runner.invoke(main, ["contact", "notes", "101"])
+        assert result.exit_code == 0
+        assert "Note 1" in result.output
+
+    def test_delete_note(self, cli: Any) -> None:
+        runner, client, _ = cli
+        client.delete_note.return_value = None
+        result = runner.invoke(main, ["contact", "delete-note", "501", "--yes"])
+        assert result.exit_code == 0
+        assert "Deleted note" in result.output
+
+
 class TestCompanyCommands:
     def test_list(self, cli: Any, mock_companies: list[dict]) -> None:
         runner, client, _ = cli
@@ -117,6 +145,34 @@ class TestCompanyCommands:
         runner, _, _ = cli
         result = runner.invoke(main, ["company", "update", "301"])
         assert "No updates specified" in result.output
+
+
+class TestCompanyNoteCommands:
+    def test_add_note(self, cli: Any) -> None:
+        runner, client, _ = cli
+        client.add_note.return_value = {"id": "502", "properties": {}}
+        result = runner.invoke(
+            main, ["company", "add-note", "301", "--body", "Company note"]
+        )
+        assert result.exit_code == 0
+        assert "Added note 502" in result.output
+        client.add_note.assert_called_once_with("companies", "301", "Company note")
+
+    def test_notes(self, cli: Any) -> None:
+        runner, client, _ = cli
+        client.list_notes.return_value = [
+            {"id": "502", "properties": {"hs_note_body": "Company note", "hs_timestamp": "1700000000000"}},
+        ]
+        result = runner.invoke(main, ["company", "notes", "301"])
+        assert result.exit_code == 0
+        assert "Company note" in result.output
+
+    def test_delete_note(self, cli: Any) -> None:
+        runner, client, _ = cli
+        client.delete_note.return_value = None
+        result = runner.invoke(main, ["company", "delete-note", "502", "--yes"])
+        assert result.exit_code == 0
+        assert "Deleted note" in result.output
 
 
 class TestDealCommands:
@@ -172,6 +228,34 @@ class TestDealCommands:
         result = runner.invoke(main, ["deal", "owners"])
         assert result.exit_code == 0
         assert "owner@example.com" in result.output
+
+
+class TestDealNoteCommands:
+    def test_add_note(self, cli: Any) -> None:
+        runner, client, _ = cli
+        client.add_note.return_value = {"id": "503", "properties": {}}
+        result = runner.invoke(
+            main, ["deal", "add-note", "201", "--body", "Deal note"]
+        )
+        assert result.exit_code == 0
+        assert "Added note 503" in result.output
+        client.add_note.assert_called_once_with("deals", "201", "Deal note")
+
+    def test_notes(self, cli: Any) -> None:
+        runner, client, _ = cli
+        client.list_notes.return_value = [
+            {"id": "503", "properties": {"hs_note_body": "Deal note", "hs_timestamp": "1700000000000"}},
+        ]
+        result = runner.invoke(main, ["deal", "notes", "201"])
+        assert result.exit_code == 0
+        assert "Deal note" in result.output
+
+    def test_delete_note(self, cli: Any) -> None:
+        runner, client, _ = cli
+        client.delete_note.return_value = None
+        result = runner.invoke(main, ["deal", "delete-note", "503", "--yes"])
+        assert result.exit_code == 0
+        assert "Deleted note" in result.output
 
 
 class TestAuthCommands:

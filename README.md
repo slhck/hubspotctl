@@ -98,6 +98,12 @@ hubspotctl deal search "enterprise"
 hubspotctl deal stages
 hubspotctl deal owners
 
+# Add a note to a contact
+hubspotctl contact add-note 12345 --body "Discussed pricing on call"
+
+# List notes for a company
+hubspotctl company notes 67890
+
 # Output as JSON
 hubspotctl --format json contact list
 
@@ -138,6 +144,9 @@ Contact management commands.
 | `contact create --email <email> [--firstname] [--lastname] [--phone] [--company] [--jobtitle] [--prop key=value]` | Create a new contact |
 | `contact update <contact_id> [--email] [--firstname] [--lastname] [--phone] [--company] [--jobtitle] [--prop key=value]` | Update a contact |
 | `contact delete <contact_id>` | Delete (archive) a contact |
+| `contact add-note <contact_id> --body <text>` | Add a note to a contact |
+| `contact notes <contact_id>` | List notes for a contact |
+| `contact delete-note <note_id>` | Delete a note |
 
 ### `hubspotctl company`
 
@@ -151,6 +160,9 @@ Company management commands.
 | `company create --name <name> [--domain] [--industry] [--phone] [--owner] [--prop key=value]` | Create a new company |
 | `company update <company_id> [--name] [--domain] [--industry] [--phone] [--owner] [--prop key=value]` | Update a company |
 | `company delete <company_id>` | Delete (archive) a company |
+| `company add-note <company_id> --body <text>` | Add a note to a company |
+| `company notes <company_id>` | List notes for a company |
+| `company delete-note <note_id>` | Delete a note |
 
 ### `hubspotctl deal`
 
@@ -166,6 +178,43 @@ Deal management commands.
 | `deal delete <deal_id>` | Delete (archive) a deal |
 | `deal stages [--pipeline]` | List deal pipelines and stages |
 | `deal owners` | List available deal owners |
+| `deal add-note <deal_id> --body <text>` | Add a note to a deal |
+| `deal notes <deal_id>` | List notes for a deal |
+| `deal delete-note <note_id>` | Delete a note |
+
+### Properties
+
+Each object type has a set of default properties that are fetched and displayed. You can request additional properties with the `--property` / `-P` flag on `list`, `show`, and `search` commands. You can also set arbitrary custom properties when creating or updating objects with `--prop key=value`.
+
+**Contact properties** (default):
+
+- `email` — email address
+- `firstname` — first name
+- `lastname` — last name
+- `phone` — phone number
+- `company` — associated company name
+- `jobtitle` — job title (shown in detail view only)
+- `lifecyclestage` — lifecycle stage (shown in detail view only)
+
+**Company properties** (default):
+
+- `name` — company name
+- `domain` — website domain
+- `industry` — industry classification
+- `phone` — phone number
+- `city` — city
+- `state` — state/region (shown in detail view only)
+- `country` — country
+- `hubspot_owner_id` — assigned owner (shown as `owner` in detail view)
+
+**Deal properties** (default):
+
+- `dealname` — deal name
+- `amount` — deal amount
+- `dealstage` — current stage (internal ID)
+- `pipeline` — pipeline (internal ID)
+- `closedate` — expected close date
+- `hubspot_owner_id` — assigned owner (shown as `owner` in detail view)
 
 ### Multiple Profiles
 

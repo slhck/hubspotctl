@@ -1,5 +1,6 @@
 """HubSpot CRM API client."""
 
+import time
 from typing import Any
 
 import httpx
@@ -81,6 +82,12 @@ class HubSpotClient:
     ) -> Any:
         """Make a PATCH request."""
         return self._request("PATCH", path, params=params, json=json)
+
+    def put(
+        self, path: str, params: dict | None = None, json: dict | None = None
+    ) -> Any:
+        """Make a PUT request."""
+        return self._request("PUT", path, params=params, json=json)
 
     def delete(self, path: str, params: dict | None = None) -> Any:
         """Make a DELETE request."""
@@ -298,3 +305,51 @@ class HubSpotClient:
         """List owners (users)."""
         result = self.get("/crm/v3/owners", params={"limit": limit})
         return result.get("results", [])
+
+    # Notes
+    def create_note(self, body: str) -> dict:
+        """Create a note object."""
+        return self.post(
+            "/crm/v3/objects/notes",
+            json={
+                "properties": {
+                    "hs_note_body": body,
+                    "hs_timestamp": str(int(time.time() * 1000)),
+                }
+            },
+        )
+
+    def associate_note(
+        self, note_id: str, object_type: str, object_id: str
+    ) -> None:
+        """Associate a note with a CRM object using v4 default associations."""
+        self.put(
+            f"/crm/v4/objects/note/{note_id}/associations/default/{object_type}/{object_id}",
+        )
+
+    def add_note(self, object_type: str, object_id: str, body: str) -> dict:
+        """Create a note and associate it with a CRM object."""
+        note = self.create_note(body)
+        self.associate_note(note["id"], object_type, object_id)
+        return note
+
+    def list_notes(self, object_type: str, object_id: str) -> list[dict]:
+        """List notes associated with a CRM object."""
+        result = self.get(
+            f"/crm/v4/objects/{object_type}/{object_id}/associations/notes",
+        )
+        note_ids = [r["toObjectId"] for r in result.get("results", [])]
+        if not note_ids:
+            return []
+        batch = self.post(
+            "/crm/v3/objects/notes/batch/read",
+            json={
+                "inputs": [{"id": nid} for nid in note_ids],
+                "properties": ["hs_note_body", "hs_timestamp"],
+            },
+        )
+        return batch.get("results", [])
+
+    def delete_note(self, note_id: str) -> None:
+        """Delete a note."""
+        self.delete(f"/crm/v3/objects/notes/{note_id}")

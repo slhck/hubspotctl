@@ -83,11 +83,47 @@ class TestHubSpotClient:
             ("search_contacts", []),
             ("search_companies", []),
             ("search_deals", []),
+            ("create_note", ["Hello"]),
         ],
     )
     def test_crud_methods_callable(
         self, client: HubSpotClient, method: str, args: list
     ) -> None:
-        _mock_response(client, json={"results": [], "total": 0})
+        _mock_response(client, json={"results": [], "total": 0, "id": "1"})
         getattr(client, method)(*args)
         client._client.request.assert_called_once()  # type: ignore[attr-defined]
+
+    def test_associate_note(self, client: HubSpotClient) -> None:
+        _mock_response(client, status=200, json={})
+        client.associate_note("10", "contacts", "101")
+        call_args = client._client.request.call_args  # type: ignore[attr-defined]
+        assert call_args[0][0] == "PUT"
+        assert "/note/10/associations/default/contacts/101" in call_args[0][1]
+
+    def test_list_notes(self, client: HubSpotClient) -> None:
+        # First call returns association IDs, second call returns note details
+        resp1 = MagicMock()
+        resp1.status_code = 200
+        resp1.json.return_value = {
+            "results": [{"toObjectId": "10"}, {"toObjectId": "11"}]
+        }
+        resp2 = MagicMock()
+        resp2.status_code = 200
+        resp2.json.return_value = {
+            "results": [
+                {"id": "10", "properties": {"hs_note_body": "Note 1"}},
+                {"id": "11", "properties": {"hs_note_body": "Note 2"}},
+            ]
+        }
+        client._client.request.side_effect = [resp1, resp2]  # type: ignore[attr-defined]
+        notes = client.list_notes("contacts", "101")
+        assert len(notes) == 2
+
+    def test_list_notes_empty(self, client: HubSpotClient) -> None:
+        _mock_response(client, json={"results": []})
+        notes = client.list_notes("contacts", "101")
+        assert notes == []
+
+    def test_delete_note(self, client: HubSpotClient) -> None:
+        _mock_response(client, status=204)
+        assert client.delete_note("10") is None
