@@ -88,7 +88,13 @@ class TestContactNoteCommands:
     def test_notes(self, cli: Any) -> None:
         runner, client, _ = cli
         client.list_notes.return_value = [
-            {"id": "501", "properties": {"hs_note_body": "Note 1", "hs_timestamp": "1700000000000"}},
+            {
+                "id": "501",
+                "properties": {
+                    "hs_note_body": "Note 1",
+                    "hs_timestamp": "1700000000000",
+                },
+            },
         ]
         result = runner.invoke(main, ["contact", "notes", "101"])
         assert result.exit_code == 0
@@ -161,7 +167,13 @@ class TestCompanyNoteCommands:
     def test_notes(self, cli: Any) -> None:
         runner, client, _ = cli
         client.list_notes.return_value = [
-            {"id": "502", "properties": {"hs_note_body": "Company note", "hs_timestamp": "1700000000000"}},
+            {
+                "id": "502",
+                "properties": {
+                    "hs_note_body": "Company note",
+                    "hs_timestamp": "1700000000000",
+                },
+            },
         ]
         result = runner.invoke(main, ["company", "notes", "301"])
         assert result.exit_code == 0
@@ -234,9 +246,7 @@ class TestDealNoteCommands:
     def test_add_note(self, cli: Any) -> None:
         runner, client, _ = cli
         client.add_note.return_value = {"id": "503", "properties": {}}
-        result = runner.invoke(
-            main, ["deal", "add-note", "201", "--body", "Deal note"]
-        )
+        result = runner.invoke(main, ["deal", "add-note", "201", "--body", "Deal note"])
         assert result.exit_code == 0
         assert "Added note 503" in result.output
         client.add_note.assert_called_once_with("deals", "201", "Deal note")
@@ -244,7 +254,13 @@ class TestDealNoteCommands:
     def test_notes(self, cli: Any) -> None:
         runner, client, _ = cli
         client.list_notes.return_value = [
-            {"id": "503", "properties": {"hs_note_body": "Deal note", "hs_timestamp": "1700000000000"}},
+            {
+                "id": "503",
+                "properties": {
+                    "hs_note_body": "Deal note",
+                    "hs_timestamp": "1700000000000",
+                },
+            },
         ]
         result = runner.invoke(main, ["deal", "notes", "201"])
         assert result.exit_code == 0

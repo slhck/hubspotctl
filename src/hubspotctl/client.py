@@ -319,9 +319,7 @@ class HubSpotClient:
             },
         )
 
-    def associate_note(
-        self, note_id: str, object_type: str, object_id: str
-    ) -> None:
+    def associate_note(self, note_id: str, object_type: str, object_id: str) -> None:
         """Associate a note with a CRM object using v4 default associations."""
         self.put(
             f"/crm/v4/objects/note/{note_id}/associations/default/{object_type}/{object_id}",
