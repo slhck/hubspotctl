@@ -1,3 +1,16 @@
+## [0.3.0] - 2026-03-04
+
+### 🐛 Bug Fixes
+
+- Make -P flag extend default properties instead of replacing them
+
+### 🎨 Styling
+
+- Fix ruff formatting in client and tests
+
+### ⚙️ Miscellaneous Tasks
+
+- Bump version to 0.3.0
 ## [0.2.0] - 2026-03-03
 
 ### 🚀 Features
