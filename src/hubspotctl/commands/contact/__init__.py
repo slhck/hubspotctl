@@ -7,10 +7,12 @@ from hubspotctl.commands._notes import format_notes, NOTE_COLUMNS
 from hubspotctl.output import format_output, print_error, print_success, print_info
 
 
-def _format_contact(c: dict) -> dict:
+def _format_contact(
+    c: dict, extra_properties: list[str] | None = None
+) -> dict:
     """Extract display fields from a contact API response."""
     props = c.get("properties", {})
-    return {
+    result = {
         "id": c["id"],
         "email": props.get("email") or "",
         "firstname": props.get("firstname") or "",
@@ -20,6 +22,10 @@ def _format_contact(c: dict) -> dict:
         "jobtitle": props.get("jobtitle") or "",
         "lifecyclestage": props.get("lifecyclestage") or "",
     }
+    for name in extra_properties or []:
+        if name not in result:
+            result[name] = props.get(name) or ""
+    return result
 
 
 CONTACT_COLUMNS = [
@@ -68,12 +74,18 @@ def list_contacts(
         return
 
     contacts = result.get("results", [])
-    data = [_format_contact(c) for c in contacts]
+    extra = list(property)
+    data = [_format_contact(c, extra_properties=extra) for c in contacts]
+
+    columns = list(CONTACT_COLUMNS)
+    for name in extra:
+        if not any(col[0] == name for col in columns):
+            columns.append((name, name))
 
     format_output(
         data,
         ctx.format,
-        columns=CONTACT_COLUMNS,
+        columns=columns,
         title="Contacts",
         template="{firstname} {lastname} <{email}> ({id})",
     )
@@ -105,8 +117,15 @@ def show_contact(ctx: Context, contact_id: str, property: tuple[str, ...]) -> No
         print_error(f"Failed to get contact: {e}")
         return
 
-    data = _format_contact(c)
-    format_output(data, ctx.format, columns=CONTACT_DETAIL_COLUMNS)
+    extra = list(property)
+    data = _format_contact(c, extra_properties=extra)
+
+    columns = list(CONTACT_DETAIL_COLUMNS)
+    for name in extra:
+        if not any(col[0] == name for col in columns):
+            columns.append((name, name))
+
+    format_output(data, ctx.format, columns=columns)
 
 
 @contact.command("search")
@@ -138,12 +157,18 @@ def search_contacts(
         return
 
     contacts = result.get("results", [])
-    data = [_format_contact(c) for c in contacts]
+    extra = list(property)
+    data = [_format_contact(c, extra_properties=extra) for c in contacts]
+
+    columns = list(CONTACT_COLUMNS)
+    for name in extra:
+        if not any(col[0] == name for col in columns):
+            columns.append((name, name))
 
     format_output(
         data,
         ctx.format,
-        columns=CONTACT_COLUMNS,
+        columns=columns,
         title=f"Search: {query}",
         template="{firstname} {lastname} <{email}> ({id})",
     )

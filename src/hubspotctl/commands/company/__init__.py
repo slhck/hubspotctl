@@ -7,10 +7,12 @@ from hubspotctl.commands._notes import format_notes, NOTE_COLUMNS
 from hubspotctl.output import format_output, print_error, print_info, print_success
 
 
-def _format_company(c: dict) -> dict:
+def _format_company(
+    c: dict, extra_properties: list[str] | None = None
+) -> dict:
     """Extract display fields from a company API response."""
     props = c.get("properties", {})
-    return {
+    result = {
         "id": c["id"],
         "name": props.get("name") or "",
         "domain": props.get("domain") or "",
@@ -21,6 +23,10 @@ def _format_company(c: dict) -> dict:
         "country": props.get("country") or "",
         "owner": props.get("hubspot_owner_id") or "",
     }
+    for name in extra_properties or []:
+        if name not in result:
+            result[name] = props.get(name) or ""
+    return result
 
 
 COMPANY_COLUMNS = [
@@ -71,12 +77,18 @@ def list_companies(
         return
 
     companies = result.get("results", [])
-    data = [_format_company(c) for c in companies]
+    extra = list(property)
+    data = [_format_company(c, extra_properties=extra) for c in companies]
+
+    columns = list(COMPANY_COLUMNS)
+    for name in extra:
+        if not any(col[0] == name for col in columns):
+            columns.append((name, name))
 
     format_output(
         data,
         ctx.format,
-        columns=COMPANY_COLUMNS,
+        columns=columns,
         title="Companies",
         template="{name} ({domain}) ({id})",
     )
@@ -102,8 +114,15 @@ def show_company(ctx: Context, company_id: str, property: tuple[str, ...]) -> No
         print_error(f"Failed to get company: {e}")
         return
 
-    data = _format_company(c)
-    format_output(data, ctx.format, columns=COMPANY_DETAIL_COLUMNS)
+    extra = list(property)
+    data = _format_company(c, extra_properties=extra)
+
+    columns = list(COMPANY_DETAIL_COLUMNS)
+    for name in extra:
+        if not any(col[0] == name for col in columns):
+            columns.append((name, name))
+
+    format_output(data, ctx.format, columns=columns)
 
 
 @company.command("search")
@@ -135,12 +154,18 @@ def search_companies(
         return
 
     companies = result.get("results", [])
-    data = [_format_company(c) for c in companies]
+    extra = list(property)
+    data = [_format_company(c, extra_properties=extra) for c in companies]
+
+    columns = list(COMPANY_COLUMNS)
+    for name in extra:
+        if not any(col[0] == name for col in columns):
+            columns.append((name, name))
 
     format_output(
         data,
         ctx.format,
-        columns=COMPANY_COLUMNS,
+        columns=columns,
         title=f"Search: {query}",
         template="{name} ({domain}) ({id})",
     )

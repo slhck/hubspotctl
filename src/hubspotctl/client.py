@@ -106,7 +106,7 @@ class HubSpotClient:
         properties: list[str] | None = None,
     ) -> dict:
         """List contacts with pagination."""
-        props = properties or DEFAULT_CONTACT_PROPERTIES
+        props = list(dict.fromkeys(DEFAULT_CONTACT_PROPERTIES + (properties or [])))
         params: dict[str, Any] = {
             "limit": limit,
             "properties": ",".join(props),
@@ -117,7 +117,7 @@ class HubSpotClient:
 
     def get_contact(self, contact_id: str, properties: list[str] | None = None) -> dict:
         """Get a contact by ID or email."""
-        props = properties or DEFAULT_CONTACT_PROPERTIES
+        props = list(dict.fromkeys(DEFAULT_CONTACT_PROPERTIES + (properties or [])))
         params = {"properties": ",".join(props)}
         return self.get(f"/crm/v3/objects/contacts/{contact_id}", params=params)
 
@@ -125,7 +125,7 @@ class HubSpotClient:
         self, email: str, properties: list[str] | None = None
     ) -> dict:
         """Get a contact by email address."""
-        props = properties or DEFAULT_CONTACT_PROPERTIES
+        props = list(dict.fromkeys(DEFAULT_CONTACT_PROPERTIES + (properties or [])))
         params: dict[str, str] = {
             "properties": ",".join(props),
             "idProperty": "email",
@@ -156,7 +156,7 @@ class HubSpotClient:
         after: str | None = None,
     ) -> dict:
         """Search contacts."""
-        props = properties or DEFAULT_CONTACT_PROPERTIES
+        props = list(dict.fromkeys(DEFAULT_CONTACT_PROPERTIES + (properties or [])))
         body: dict[str, Any] = {
             "properties": props,
             "limit": limit,
@@ -177,7 +177,7 @@ class HubSpotClient:
         properties: list[str] | None = None,
     ) -> dict:
         """List deals with pagination."""
-        props = properties or DEFAULT_DEAL_PROPERTIES
+        props = list(dict.fromkeys(DEFAULT_DEAL_PROPERTIES + (properties or [])))
         params: dict[str, Any] = {
             "limit": limit,
             "properties": ",".join(props),
@@ -188,7 +188,7 @@ class HubSpotClient:
 
     def get_deal(self, deal_id: str, properties: list[str] | None = None) -> dict:
         """Get a deal by ID."""
-        props = properties or DEFAULT_DEAL_PROPERTIES
+        props = list(dict.fromkeys(DEFAULT_DEAL_PROPERTIES + (properties or [])))
         params = {"properties": ",".join(props)}
         return self.get(f"/crm/v3/objects/deals/{deal_id}", params=params)
 
@@ -216,7 +216,7 @@ class HubSpotClient:
         after: str | None = None,
     ) -> dict:
         """Search deals."""
-        props = properties or DEFAULT_DEAL_PROPERTIES
+        props = list(dict.fromkeys(DEFAULT_DEAL_PROPERTIES + (properties or [])))
         body: dict[str, Any] = {
             "properties": props,
             "limit": limit,
@@ -237,7 +237,7 @@ class HubSpotClient:
         properties: list[str] | None = None,
     ) -> dict:
         """List companies with pagination."""
-        props = properties or DEFAULT_COMPANY_PROPERTIES
+        props = list(dict.fromkeys(DEFAULT_COMPANY_PROPERTIES + (properties or [])))
         params: dict[str, Any] = {
             "limit": limit,
             "properties": ",".join(props),
@@ -248,7 +248,7 @@ class HubSpotClient:
 
     def get_company(self, company_id: str, properties: list[str] | None = None) -> dict:
         """Get a company by ID."""
-        props = properties or DEFAULT_COMPANY_PROPERTIES
+        props = list(dict.fromkeys(DEFAULT_COMPANY_PROPERTIES + (properties or [])))
         params = {"properties": ",".join(props)}
         return self.get(f"/crm/v3/objects/companies/{company_id}", params=params)
 
@@ -276,7 +276,7 @@ class HubSpotClient:
         after: str | None = None,
     ) -> dict:
         """Search companies."""
-        props = properties or DEFAULT_COMPANY_PROPERTIES
+        props = list(dict.fromkeys(DEFAULT_COMPANY_PROPERTIES + (properties or [])))
         body: dict[str, Any] = {
             "properties": props,
             "limit": limit,

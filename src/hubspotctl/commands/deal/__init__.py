@@ -7,10 +7,10 @@ from hubspotctl.commands._notes import format_notes, NOTE_COLUMNS
 from hubspotctl.output import format_output, print_error, print_success, print_info
 
 
-def _format_deal(d: dict) -> dict:
+def _format_deal(d: dict, extra_properties: list[str] | None = None) -> dict:
     """Extract display fields from a deal API response."""
     props = d.get("properties", {})
-    return {
+    result = {
         "id": d["id"],
         "dealname": props.get("dealname") or "",
         "amount": props.get("amount") or "",
@@ -19,6 +19,10 @@ def _format_deal(d: dict) -> dict:
         "closedate": props.get("closedate") or "",
         "owner": props.get("hubspot_owner_id") or "",
     }
+    for name in extra_properties or []:
+        if name not in result:
+            result[name] = props.get(name) or ""
+    return result
 
 
 DEAL_COLUMNS = [
@@ -66,12 +70,18 @@ def list_deals(
         return
 
     deals = result.get("results", [])
-    data = [_format_deal(d) for d in deals]
+    extra = list(property)
+    data = [_format_deal(d, extra_properties=extra) for d in deals]
+
+    columns = list(DEAL_COLUMNS)
+    for name in extra:
+        if not any(col[0] == name for col in columns):
+            columns.append((name, name))
 
     format_output(
         data,
         ctx.format,
-        columns=DEAL_COLUMNS,
+        columns=columns,
         title="Deals",
         template="{dealname} ({dealstage}) - {amount} ({id})",
     )
@@ -97,8 +107,15 @@ def show_deal(ctx: Context, deal_id: str, property: tuple[str, ...]) -> None:
         print_error(f"Failed to get deal: {e}")
         return
 
-    data = _format_deal(d)
-    format_output(data, ctx.format, columns=DEAL_DETAIL_COLUMNS)
+    extra = list(property)
+    data = _format_deal(d, extra_properties=extra)
+
+    columns = list(DEAL_DETAIL_COLUMNS)
+    for name in extra:
+        if not any(col[0] == name for col in columns):
+            columns.append((name, name))
+
+    format_output(data, ctx.format, columns=columns)
 
 
 @deal.command("search")
@@ -130,12 +147,18 @@ def search_deals(
         return
 
     deals = result.get("results", [])
-    data = [_format_deal(d) for d in deals]
+    extra = list(property)
+    data = [_format_deal(d, extra_properties=extra) for d in deals]
+
+    columns = list(DEAL_COLUMNS)
+    for name in extra:
+        if not any(col[0] == name for col in columns):
+            columns.append((name, name))
 
     format_output(
         data,
         ctx.format,
-        columns=DEAL_COLUMNS,
+        columns=columns,
         title=f"Search: {query}",
         template="{dealname} ({dealstage}) - {amount} ({id})",
     )
