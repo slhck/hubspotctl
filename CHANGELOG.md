@@ -1,3 +1,16 @@
+## [0.3.1] - 2026-03-04
+
+### 📚 Documentation
+
+- Add pre-commit and linting instructions to CLAUDE.md
+
+### 🎨 Styling
+
+- Fix ruff formatting in contact and company commands
+
+### ⚙️ Miscellaneous Tasks
+
+- Bump version to 0.3.1
 ## [0.3.0] - 2026-03-04
 
 ### 🐛 Bug Fixes
