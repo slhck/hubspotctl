@@ -7,9 +7,7 @@ from hubspotctl.commands._notes import format_notes, NOTE_COLUMNS
 from hubspotctl.output import format_output, print_error, print_info, print_success
 
 
-def _format_company(
-    c: dict, extra_properties: list[str] | None = None
-) -> dict:
+def _format_company(c: dict, extra_properties: list[str] | None = None) -> dict:
     """Extract display fields from a company API response."""
     props = c.get("properties", {})
     result = {
