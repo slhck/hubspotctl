@@ -28,22 +28,26 @@ pip install hubspotctl
 
 ### Authentication
 
-Before using the CLI, you need to authenticate with HubSpot:
+Before using the CLI, you need to authenticate with HubSpot by creating a Service Key (recommended) or a legacy private app.
 
-1. Go to your HubSpot account settings
-2. Navigate to Integrations > Private Apps (or Development > Legacy apps > Create legacy app > Private)
-3. Create a private app with the following scopes:
-   - `crm.objects.contacts.read`, `crm.objects.contacts.write`
-   - `crm.objects.contacts.sensitive.read`, `crm.objects.contacts.highly_sensitive.read`
-   - `crm.objects.companies.read`, `crm.objects.companies.write`
-   - `crm.objects.companies.sensitive.read`, `crm.objects.companies.highly_sensitive.read`
-   - `crm.objects.deals.read`, `crm.objects.deals.write`
-   - `crm.objects.deals.sensitive.read`, `crm.objects.deals.highly_sensitive.read`
-   - `crm.objects.owners.read`
-   - `crm.schemas.contacts.read`, `crm.schemas.contacts.write`
-   - `crm.schemas.companies.read`, `crm.schemas.companies.write`
-   - `crm.schemas.deals.read`, `crm.schemas.deals.write`
-4. Copy your access token and run:
+**Service Keys** (recommended): Go to Settings > Integrations > Service Keys (or Development > Keys > Service Keys) and create a key with the scopes listed below.
+
+**Legacy private apps**: Go to Settings > Integrations > Private Apps and create a private app with the scopes listed below. Note that HubSpot recommends Service Keys for new integrations.
+
+Required scopes:
+
+- `crm.objects.contacts.read`, `crm.objects.contacts.write`
+- `crm.objects.contacts.sensitive.read`, `crm.objects.contacts.highly_sensitive.read`
+- `crm.objects.companies.read`, `crm.objects.companies.write`
+- `crm.objects.companies.sensitive.read`, `crm.objects.companies.highly_sensitive.read`
+- `crm.objects.deals.read`, `crm.objects.deals.write`
+- `crm.objects.deals.sensitive.read`, `crm.objects.deals.highly_sensitive.read`
+- `crm.objects.owners.read`
+- `crm.schemas.contacts.read`, `crm.schemas.contacts.write`
+- `crm.schemas.companies.read`, `crm.schemas.companies.write`
+- `crm.schemas.deals.read`, `crm.schemas.deals.write`
+
+Copy your access token and run:
 
 ```bash
 hubspotctl auth login
