@@ -1,3 +1,16 @@
+## [0.3.2] - 2026-03-06
+
+### 🐛 Bug Fixes
+
+- *(output)* Write status messages to stderr instead of stdout
+
+### 📚 Documentation
+
+- Recommend HubSpot Service Keys over legacy private apps
+
+### ⚙️ Miscellaneous Tasks
+
+- Bump version to 0.3.2
 ## [0.3.1] - 2026-03-04
 
 ### 📚 Documentation
