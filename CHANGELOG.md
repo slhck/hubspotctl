@@ -1,3 +1,12 @@
+## [0.3.3] - 2026-03-06
+
+### 🚀 Features
+
+- *(commands)* Add --filter/-F option to list and search commands
+
+### ⚙️ Miscellaneous Tasks
+
+- Bump version to 0.3.3
 ## [0.3.2] - 2026-03-06
 
 ### 🐛 Bug Fixes
