@@ -3,6 +3,7 @@
 import click
 
 from hubspotctl.cli import Context, pass_context
+from hubspotctl.commands._filters import parse_filters
 from hubspotctl.commands._notes import format_notes, NOTE_COLUMNS
 from hubspotctl.output import format_output, print_error, print_info, print_success
 
@@ -60,22 +61,46 @@ def company() -> None:
 @click.option("--limit", "-l", default=20, help="Number of results (max 100)")
 @click.option("--after", help="Pagination cursor")
 @click.option("--property", "-P", multiple=True, help="Additional properties to fetch")
+@click.option(
+    "--filter",
+    "-F",
+    "filters",
+    multiple=True,
+    help="Filter by property (e.g. -F industry=Technology). Operators: = != < > <= >= ~",
+)
 @pass_context
 def list_companies(
-    ctx: Context, limit: int, after: str | None, property: tuple[str, ...]
+    ctx: Context,
+    limit: int,
+    after: str | None,
+    property: tuple[str, ...],
+    filters: tuple[str, ...],
 ) -> None:
     """List companies."""
     client = ctx.ensure_client()
 
     try:
         props = list(property) if property else None
-        result = client.list_companies(limit=limit, after=after, properties=props)
+        hubspot_filters = parse_filters(filters)
+        filter_props = [f["propertyName"] for f in hubspot_filters or []]
+        all_props = list(dict.fromkeys((props or []) + filter_props))
+        if hubspot_filters:
+            result = client.search_companies(
+                filters=hubspot_filters,
+                limit=limit,
+                after=after,
+                properties=all_props or None,
+            )
+        else:
+            result = client.list_companies(
+                limit=limit, after=after, properties=all_props or None
+            )
     except Exception as e:
         print_error(f"Failed to list companies: {e}")
         return
 
     companies = result.get("results", [])
-    extra = list(property)
+    extra = list(dict.fromkeys(list(property) + filter_props))
     data = [_format_company(c, extra_properties=extra) for c in companies]
 
     columns = list(COMPANY_COLUMNS)
@@ -128,6 +153,13 @@ def show_company(ctx: Context, company_id: str, property: tuple[str, ...]) -> No
 @click.option("--limit", "-l", default=20, help="Number of results (max 200)")
 @click.option("--after", help="Pagination cursor")
 @click.option("--property", "-P", multiple=True, help="Additional properties to fetch")
+@click.option(
+    "--filter",
+    "-F",
+    "filters",
+    multiple=True,
+    help="Filter by property (e.g. -F industry=Technology). Operators: = != < > <= >= ~",
+)
 @pass_context
 def search_companies(
     ctx: Context,
@@ -135,6 +167,7 @@ def search_companies(
     limit: int,
     after: str | None,
     property: tuple[str, ...],
+    filters: tuple[str, ...],
 ) -> None:
     """Search companies by name, domain, etc.
 
@@ -143,16 +176,24 @@ def search_companies(
     client = ctx.ensure_client()
 
     try:
-        props = list(property) if property else None
+        hubspot_filters = parse_filters(filters)
+        filter_props = [f["propertyName"] for f in hubspot_filters or []]
+        all_props = list(
+            dict.fromkeys((list(property) if property else []) + filter_props)
+        )
         result = client.search_companies(
-            query=query, limit=limit, after=after, properties=props
+            query=query,
+            filters=hubspot_filters,
+            limit=limit,
+            after=after,
+            properties=all_props or None,
         )
     except Exception as e:
         print_error(f"Search failed: {e}")
         return
 
     companies = result.get("results", [])
-    extra = list(property)
+    extra = list(dict.fromkeys(list(property) + filter_props))
     data = [_format_company(c, extra_properties=extra) for c in companies]
 
     columns = list(COMPANY_COLUMNS)
