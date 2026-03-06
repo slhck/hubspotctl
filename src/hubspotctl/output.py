@@ -70,7 +70,7 @@ def output_plain(data: list[dict], template: str) -> None:
 
 def print_success(message: str) -> None:
     """Print a success message."""
-    console.print(f"[green]✓[/green] {message}")
+    error_console.print(f"[green]✓[/green] {message}")
 
 
 def print_error(message: str) -> None:
@@ -80,12 +80,12 @@ def print_error(message: str) -> None:
 
 def print_warning(message: str) -> None:
     """Print a warning message."""
-    console.print(f"[yellow]![/yellow] {message}")
+    error_console.print(f"[yellow]![/yellow] {message}")
 
 
 def print_info(message: str) -> None:
     """Print an info message."""
-    console.print(f"[blue]ℹ[/blue] {message}")
+    error_console.print(f"[blue]ℹ[/blue] {message}")
 
 
 def format_output(
