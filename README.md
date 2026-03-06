@@ -108,6 +108,18 @@ hubspotctl contact add-note 12345 --body "Discussed pricing on call"
 # List notes for a company
 hubspotctl company notes 67890
 
+# Filter by property value
+hubspotctl contact list -F last_touchpoint="MWC 2026"
+
+# Multiple filters (AND logic)
+hubspotctl contact list -F last_touchpoint="MWC 2026" -F company=AVEQ
+
+# Filter with comparison operators
+hubspotctl deal list -F amount>=1000
+
+# Combine search with filters
+hubspotctl contact search "John" -F lifecyclestage=lead
+
 # Output as JSON
 hubspotctl --format json contact list
 
@@ -142,9 +154,9 @@ Contact management commands.
 
 | Command | Description |
 |---------|-------------|
-| `contact list [--limit] [--after] [--property]` | List contacts |
+| `contact list [--limit] [--after] [--property] [--filter]` | List contacts |
 | `contact show <contact_id> [--property]` | Show details of a contact (ID or email) |
-| `contact search <query> [--limit] [--after] [--property]` | Search contacts by name, email, etc. |
+| `contact search <query> [--limit] [--after] [--property] [--filter]` | Search contacts by name, email, etc. |
 | `contact create --email <email> [--firstname] [--lastname] [--phone] [--company] [--jobtitle] [--prop key=value]` | Create a new contact |
 | `contact update <contact_id> [--email] [--firstname] [--lastname] [--phone] [--company] [--jobtitle] [--prop key=value]` | Update a contact |
 | `contact delete <contact_id>` | Delete (archive) a contact |
@@ -158,9 +170,9 @@ Company management commands.
 
 | Command | Description |
 |---------|-------------|
-| `company list [--limit] [--after] [--property]` | List companies |
+| `company list [--limit] [--after] [--property] [--filter]` | List companies |
 | `company show <company_id> [--property]` | Show details of a company |
-| `company search <query> [--limit] [--after] [--property]` | Search companies by name, domain, etc. |
+| `company search <query> [--limit] [--after] [--property] [--filter]` | Search companies by name, domain, etc. |
 | `company create --name <name> [--domain] [--industry] [--phone] [--owner] [--prop key=value]` | Create a new company |
 | `company update <company_id> [--name] [--domain] [--industry] [--phone] [--owner] [--prop key=value]` | Update a company |
 | `company delete <company_id>` | Delete (archive) a company |
@@ -174,9 +186,9 @@ Deal management commands.
 
 | Command | Description |
 |---------|-------------|
-| `deal list [--limit] [--after] [--property]` | List deals |
+| `deal list [--limit] [--after] [--property] [--filter]` | List deals |
 | `deal show <deal_id> [--property]` | Show details of a deal |
-| `deal search <query> [--limit] [--after] [--property]` | Search deals by name, etc. |
+| `deal search <query> [--limit] [--after] [--property] [--filter]` | Search deals by name, etc. |
 | `deal create --name <name> --stage <stage> [--pipeline] [--amount] [--closedate] [--owner] [--prop key=value]` | Create a new deal |
 | `deal update <deal_id> [--name] [--stage] [--pipeline] [--amount] [--closedate] [--owner] [--prop key=value]` | Update a deal |
 | `deal delete <deal_id>` | Delete (archive) a deal |
@@ -189,6 +201,8 @@ Deal management commands.
 ### Properties
 
 Each object type has a set of default properties that are fetched and displayed. You can request additional properties with the `--property` / `-P` flag on `list`, `show`, and `search` commands. You can also set arbitrary custom properties when creating or updating objects with `--prop key=value`.
+
+You can filter results by property values using `--filter` / `-F` on `list` and `search` commands. Supported operators: `=`, `!=`, `<`, `>`, `<=`, `>=`, `~` (contains token). Multiple filters are combined with AND logic. Filter properties are automatically included in the output.
 
 **Contact properties** (default):
 
