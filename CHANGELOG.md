@@ -1,3 +1,14 @@
+## [0.3.4] - 2026-03-30
+
+### 📚 Documentation
+
+- Add --filter/-F option to README
+
+### ⚙️ Miscellaneous Tasks
+
+- Replace mypy with ty for type checking
+- *(build)* Relax uv_build upper bound to <1.0.0
+- Bump version to 0.3.4
 ## [0.3.3] - 2026-03-06
 
 ### 🚀 Features
