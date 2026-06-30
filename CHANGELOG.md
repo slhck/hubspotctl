@@ -1,3 +1,12 @@
+## [0.4.0] - 2026-06-30
+
+### 🚀 Features
+
+- Add association management for deals, contacts, companies
+
+### ⚙️ Miscellaneous Tasks
+
+- Bump version to 0.4.0
 ## [0.3.4] - 2026-03-30
 
 ### 📚 Documentation
