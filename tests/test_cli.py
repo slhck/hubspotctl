@@ -73,6 +73,21 @@ class TestContactCommands:
         result = runner.invoke(main, ["contact", "update", "101"])
         assert "No updates specified" in result.output
 
+    def test_merge(self, cli: Any) -> None:
+        runner, client, _ = cli
+        client.merge.return_value = {"id": "999", "properties": {}}
+        result = runner.invoke(main, ["contact", "merge", "101", "102", "--yes"])
+        assert result.exit_code == 0
+        assert "Merged contact 102 into contact 101" in result.output
+        assert "resulting contact: 999" in result.output
+        client.merge.assert_called_once_with("contacts", "101", "102")
+
+    def test_merge_aborts_without_confirmation(self, cli: Any) -> None:
+        runner, client, _ = cli
+        result = runner.invoke(main, ["contact", "merge", "101", "102"], input="n\n")
+        assert result.exit_code != 0
+        client.merge.assert_not_called()
+
 
 class TestContactNoteCommands:
     def test_add_note(self, cli: Any) -> None:
@@ -193,6 +208,14 @@ class TestCompanyCommands:
         runner, _, _ = cli
         result = runner.invoke(main, ["company", "update", "301"])
         assert "No updates specified" in result.output
+
+    def test_merge(self, cli: Any) -> None:
+        runner, client, _ = cli
+        client.merge.return_value = {"id": "301", "properties": {}}
+        result = runner.invoke(main, ["company", "merge", "301", "302", "--yes"])
+        assert result.exit_code == 0
+        assert "Merged company 302 into company 301" in result.output
+        client.merge.assert_called_once_with("companies", "301", "302")
 
 
 class TestCompanyNoteCommands:
@@ -327,6 +350,14 @@ class TestDealCommands:
         result = runner.invoke(main, ["deal", "owners"])
         assert result.exit_code == 0
         assert "owner@example.com" in result.output
+
+    def test_merge(self, cli: Any) -> None:
+        runner, client, _ = cli
+        client.merge.return_value = {"id": "201", "properties": {}}
+        result = runner.invoke(main, ["deal", "merge", "201", "202", "--yes"])
+        assert result.exit_code == 0
+        assert "Merged deal 202 into deal 201" in result.output
+        client.merge.assert_called_once_with("deals", "201", "202")
 
 
 class TestDealNoteCommands:

@@ -108,6 +108,9 @@ hubspotctl deal associate 201 --company 301 --contact 101 --contact 102
 # List a deal's associated companies and contacts
 hubspotctl deal associations 201
 
+# Merge a duplicate contact into another (the second is archived)
+hubspotctl contact merge 101 102
+
 # Add a note to a contact
 hubspotctl contact add-note 12345 --body "Discussed pricing on call"
 
@@ -166,6 +169,7 @@ Contact management commands.
 | `contact create --email <email> [--firstname] [--lastname] [--phone] [--company] [--jobtitle] [--prop key=value]` | Create a new contact |
 | `contact update <contact_id> [--email] [--firstname] [--lastname] [--phone] [--company] [--jobtitle] [--prop key=value]` | Update a contact |
 | `contact delete <contact_id>` | Delete (archive) a contact |
+| `contact merge <primary_id> <merge_id>` | Merge two contacts into one |
 | `contact associate <contact_id> [--company <id>] [--deal <id>] [--label <name>]` | Associate a contact with companies and/or deals |
 | `contact disassociate <contact_id> [--company <id>] [--deal <id>]` | Remove a contact's associations to companies and/or deals |
 | `contact associations <contact_id>` | List companies and deals associated with a contact |
@@ -186,6 +190,7 @@ Company management commands.
 | `company create --name <name> [--domain] [--industry] [--phone] [--owner] [--prop key=value]` | Create a new company |
 | `company update <company_id> [--name] [--domain] [--industry] [--phone] [--owner] [--prop key=value]` | Update a company |
 | `company delete <company_id>` | Delete (archive) a company |
+| `company merge <primary_id> <merge_id>` | Merge two companies into one |
 | `company associate <company_id> [--contact <id>] [--deal <id>] [--label <name>]` | Associate a company with contacts and/or deals |
 | `company disassociate <company_id> [--contact <id>] [--deal <id>]` | Remove a company's associations to contacts and/or deals |
 | `company associations <company_id>` | List contacts and deals associated with a company |
@@ -206,6 +211,7 @@ Deal management commands.
 | `deal create --name <name> --stage <stage> [--pipeline] [--amount] [--closedate] [--owner] [--prop key=value]` | Create a new deal |
 | `deal update <deal_id> [--name] [--stage] [--pipeline] [--amount] [--closedate] [--owner] [--prop key=value]` | Update a deal |
 | `deal delete <deal_id>` | Delete (archive) a deal |
+| `deal merge <primary_id> <merge_id>` | Merge two deals into one |
 | `deal stages [--pipeline]` | List deal pipelines and stages |
 | `deal owners` | List available deal owners |
 | `deal associate <deal_id> [--company <id>] [--contact <id>] [--label <name>]` | Associate a deal with companies and/or contacts |
@@ -242,6 +248,21 @@ hubspotctl contact associate 101 --company 301 --label "Decision maker"
 ```
 
 These commands expect numeric record IDs, not email addresses. `disassociate` removes all associations between the two records (it does not target a single label).
+
+### Merging records
+
+Two records of the same type can be merged into one with the `merge` command. The first ID is the record to keep; the second is merged into it and then archived. The kept record inherits properties and associations from both, with the primary record winning any conflicts.
+
+```bash
+# Merge a duplicate contact (102) into the one you want to keep (101)
+hubspotctl contact merge 101 102
+
+# Works the same way for companies and deals
+hubspotctl company merge 301 302
+hubspotctl deal merge 201 202
+```
+
+This is destructive (the second record is archived), so it asks for confirmation first. Pass `--yes` to skip the prompt. These commands expect numeric record IDs, not email addresses. Note that for contacts the resulting record may be assigned a new ID, which is shown in the output.
 
 ### Properties
 

@@ -410,6 +410,19 @@ class HubSpotClient:
         )
         return result.get("results", [])
 
+    def merge(self, object_type: str, primary_id: str, merge_id: str) -> dict:
+        """Merge two records of the same type into one.
+
+        ``primary_id`` is kept; ``merge_id`` is merged into it and then
+        archived. Returns the resulting record, whose ID may differ from
+        ``primary_id``. Supported object types include contacts, companies,
+        and deals.
+        """
+        return self.post(
+            f"/crm/v3/objects/{object_type}/merge",
+            json={"primaryObjectId": primary_id, "objectIdToMerge": merge_id},
+        )
+
     def batch_read(
         self,
         object_type: str,

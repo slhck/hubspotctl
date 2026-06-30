@@ -9,6 +9,7 @@ from hubspotctl.commands._associations import (
     show_labels,
 )
 from hubspotctl.commands._filters import parse_filters
+from hubspotctl.commands._merge import merge_records
 from hubspotctl.commands._notes import format_notes, NOTE_COLUMNS
 from hubspotctl.output import format_output, print_error, print_success, print_info
 
@@ -350,6 +351,23 @@ def delete_contact(ctx: Context, contact_id: str) -> None:
         print_success(f"Deleted contact: {contact_id}")
     except Exception as e:
         print_error(f"Failed to delete contact: {e}")
+
+
+@contact.command("merge")
+@click.argument("primary_id")
+@click.argument("merge_id")
+@click.confirmation_option(
+    prompt="Merge these contacts? The second will be merged into the first and archived."
+)
+@pass_context
+def merge_contacts(ctx: Context, primary_id: str, merge_id: str) -> None:
+    """Merge two contacts into one.
+
+    PRIMARY_ID is the contact to keep; MERGE_ID is merged into it and then
+    archived. Both must be numeric record IDs, not email addresses.
+    """
+    client = ctx.ensure_client()
+    merge_records(client, "contacts", primary_id, merge_id)
 
 
 @contact.command("associate")

@@ -170,6 +170,18 @@ class TestHubSpotClient:
         result = client.list_associations("deals", "201", "companies")
         assert result[0]["toObjectId"] == "301"
 
+    def test_merge(self, client: HubSpotClient) -> None:
+        _mock_response(client, json={"id": "999", "properties": {}})
+        result = client.merge("contacts", "101", "102")
+        assert result["id"] == "999"
+        call_args = client._client.request.call_args  # type: ignore[attr-defined]
+        assert call_args[0][0] == "POST"
+        assert "/crm/v3/objects/contacts/merge" in call_args[0][1]
+        assert call_args.kwargs["json"] == {
+            "primaryObjectId": "101",
+            "objectIdToMerge": "102",
+        }
+
     def test_batch_read(self, client: HubSpotClient) -> None:
         _mock_response(client, json={"results": [{"id": "301", "properties": {}}]})
         result = client.batch_read("companies", ["301"], ["name"])
