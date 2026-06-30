@@ -3,6 +3,11 @@
 import click
 
 from hubspotctl.cli import Context, pass_context
+from hubspotctl.commands._associations import (
+    change_associations,
+    show_associations,
+    show_labels,
+)
 from hubspotctl.commands._filters import parse_filters
 from hubspotctl.commands._notes import format_notes, NOTE_COLUMNS
 from hubspotctl.output import format_output, print_error, print_success, print_info
@@ -414,6 +419,100 @@ def deal_owners(ctx: Context) -> None:
         title="Owners",
         template="{firstname} {lastname} <{email}> ({id})",
     )
+
+
+@deal.command("associate")
+@click.argument("deal_id")
+@click.option(
+    "--company",
+    "-c",
+    "companies",
+    multiple=True,
+    help="Company ID to associate (repeatable)",
+)
+@click.option(
+    "--contact",
+    "-C",
+    "contacts",
+    multiple=True,
+    help="Contact ID to associate (repeatable)",
+)
+@click.option(
+    "--label",
+    "-L",
+    "labels",
+    multiple=True,
+    help="Association label name or type ID (repeatable). See 'deal labels'.",
+)
+@pass_context
+def associate_deal(
+    ctx: Context,
+    deal_id: str,
+    companies: tuple[str, ...],
+    contacts: tuple[str, ...],
+    labels: tuple[str, ...],
+) -> None:
+    """Associate a deal with companies and/or contacts."""
+    client = ctx.ensure_client()
+    change_associations(
+        client,
+        "deals",
+        deal_id,
+        [("companies", companies), ("contacts", contacts)],
+        remove=False,
+        labels=labels,
+    )
+
+
+@deal.command("disassociate")
+@click.argument("deal_id")
+@click.option(
+    "--company",
+    "-c",
+    "companies",
+    multiple=True,
+    help="Company ID to disassociate (repeatable)",
+)
+@click.option(
+    "--contact",
+    "-C",
+    "contacts",
+    multiple=True,
+    help="Contact ID to disassociate (repeatable)",
+)
+@pass_context
+def disassociate_deal(
+    ctx: Context,
+    deal_id: str,
+    companies: tuple[str, ...],
+    contacts: tuple[str, ...],
+) -> None:
+    """Remove associations between a deal and companies and/or contacts."""
+    client = ctx.ensure_client()
+    change_associations(
+        client,
+        "deals",
+        deal_id,
+        [("companies", companies), ("contacts", contacts)],
+        remove=True,
+    )
+
+
+@deal.command("associations")
+@click.argument("deal_id")
+@pass_context
+def deal_associations(ctx: Context, deal_id: str) -> None:
+    """List companies and contacts associated with a deal."""
+    client = ctx.ensure_client()
+    show_associations(client, "deals", deal_id, ["companies", "contacts"], ctx.format)
+
+
+@deal.command("labels")
+@pass_context
+def deal_labels(ctx: Context) -> None:
+    """List association labels available from deals to companies and contacts."""
+    client = ctx.ensure_client()
+    show_labels(client, "deals", ["companies", "contacts"], ctx.format)
 
 
 @deal.command("add-note")

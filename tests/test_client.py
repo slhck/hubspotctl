@@ -127,3 +127,62 @@ class TestHubSpotClient:
     def test_delete_note(self, client: HubSpotClient) -> None:
         _mock_response(client, status=204)
         assert client.delete_note("10") is None
+
+    def test_associate(self, client: HubSpotClient) -> None:
+        _mock_response(client, status=200, json={})
+        client.associate("deals", "201", "companies", "301")
+        call_args = client._client.request.call_args  # type: ignore[attr-defined]
+        assert call_args[0][0] == "PUT"
+        assert "/deals/201/associations/default/companies/301" in call_args[0][1]
+
+    def test_associate_with_labels(self, client: HubSpotClient) -> None:
+        _mock_response(client, status=200, json={})
+        types = [{"associationCategory": "HUBSPOT_DEFINED", "associationTypeId": 5}]
+        client.associate("deals", "201", "companies", "301", association_types=types)
+        call_args = client._client.request.call_args  # type: ignore[attr-defined]
+        assert call_args[0][0] == "PUT"
+        # Labeled associations use the non-default endpoint with a body.
+        assert "/deals/201/associations/companies/301" in call_args[0][1]
+        assert "/default/" not in call_args[0][1]
+        assert call_args.kwargs["json"] == types
+
+    def test_disassociate(self, client: HubSpotClient) -> None:
+        _mock_response(client, status=204)
+        client.disassociate("deals", "201", "contacts", "101")
+        call_args = client._client.request.call_args  # type: ignore[attr-defined]
+        assert call_args[0][0] == "DELETE"
+        assert "/deals/201/associations/contacts/101" in call_args[0][1]
+
+    def test_get_association_labels(self, client: HubSpotClient) -> None:
+        _mock_response(
+            client,
+            json={
+                "results": [{"category": "USER_DEFINED", "typeId": 36, "label": "X"}]
+            },
+        )
+        labels = client.get_association_labels("deals", "companies")
+        assert labels[0]["label"] == "X"
+        call_args = client._client.request.call_args  # type: ignore[attr-defined]
+        assert "/crm/v4/associations/deals/companies/labels" in call_args[0][1]
+
+    def test_list_associations(self, client: HubSpotClient) -> None:
+        _mock_response(client, json={"results": [{"toObjectId": "301"}]})
+        result = client.list_associations("deals", "201", "companies")
+        assert result[0]["toObjectId"] == "301"
+
+    def test_batch_read(self, client: HubSpotClient) -> None:
+        _mock_response(client, json={"results": [{"id": "301", "properties": {}}]})
+        result = client.batch_read("companies", ["301"], ["name"])
+        assert result[0]["id"] == "301"
+        client._client.request.assert_called_once()  # type: ignore[attr-defined]
+
+    def test_batch_read_empty(self, client: HubSpotClient) -> None:
+        assert client.batch_read("companies", []) == []
+        client._client.request.assert_not_called()  # type: ignore[attr-defined]
+
+    def test_batch_read_chunks_over_100(self, client: HubSpotClient) -> None:
+        _mock_response(client, json={"results": [{"id": "1"}]})
+        ids = [str(i) for i in range(250)]
+        client.batch_read("companies", ids)
+        # 250 IDs -> three requests of 100, 100, 50
+        assert client._client.request.call_count == 3  # type: ignore[attr-defined]

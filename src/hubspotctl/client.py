@@ -56,7 +56,7 @@ class HubSpotClient:
         method: str,
         path: str,
         params: dict | None = None,
-        json: dict | None = None,
+        json: dict | list | None = None,
     ) -> Any:
         """Make an authenticated request to HubSpot API."""
         url = f"{BASE_URL}{path}"
@@ -84,7 +84,7 @@ class HubSpotClient:
         return self._request("PATCH", path, params=params, json=json)
 
     def put(
-        self, path: str, params: dict | None = None, json: dict | None = None
+        self, path: str, params: dict | None = None, json: dict | list | None = None
     ) -> Any:
         """Make a PUT request."""
         return self._request("PUT", path, params=params, json=json)
@@ -351,3 +351,85 @@ class HubSpotClient:
     def delete_note(self, note_id: str) -> None:
         """Delete a note."""
         self.delete(f"/crm/v3/objects/notes/{note_id}")
+
+    # Associations
+    def associate(
+        self,
+        from_object_type: str,
+        from_object_id: str,
+        to_object_type: str,
+        to_object_id: str,
+        association_types: list[dict] | None = None,
+    ) -> None:
+        """Create an association between two CRM objects (v4).
+
+        Without association_types, a default (unlabeled) association is created.
+        With it (a list of {"associationCategory", "associationTypeId"} dicts),
+        a labeled association is created instead.
+        """
+        if association_types:
+            self.put(
+                f"/crm/v4/objects/{from_object_type}/{from_object_id}"
+                f"/associations/{to_object_type}/{to_object_id}",
+                json=association_types,
+            )
+        else:
+            self.put(
+                f"/crm/v4/objects/{from_object_type}/{from_object_id}"
+                f"/associations/default/{to_object_type}/{to_object_id}",
+            )
+
+    def get_association_labels(
+        self, from_object_type: str, to_object_type: str
+    ) -> list[dict]:
+        """List association labels/types defined between two object types (v4)."""
+        result = self.get(
+            f"/crm/v4/associations/{from_object_type}/{to_object_type}/labels",
+        )
+        return result.get("results", [])
+
+    def disassociate(
+        self,
+        from_object_type: str,
+        from_object_id: str,
+        to_object_type: str,
+        to_object_id: str,
+    ) -> None:
+        """Remove all associations between two CRM objects (v4)."""
+        self.delete(
+            f"/crm/v4/objects/{from_object_type}/{from_object_id}"
+            f"/associations/{to_object_type}/{to_object_id}",
+        )
+
+    def list_associations(
+        self, object_type: str, object_id: str, to_object_type: str
+    ) -> list[dict]:
+        """List objects of to_object_type associated with a CRM object (v4)."""
+        result = self.get(
+            f"/crm/v4/objects/{object_type}/{object_id}/associations/{to_object_type}",
+        )
+        return result.get("results", [])
+
+    def batch_read(
+        self,
+        object_type: str,
+        object_ids: list[str],
+        properties: list[str] | None = None,
+    ) -> list[dict]:
+        """Batch read objects by ID.
+
+        The HubSpot batch read endpoint accepts at most 100 IDs per request,
+        so larger lists are fetched in chunks.
+        """
+        results: list[dict] = []
+        for start in range(0, len(object_ids), 100):
+            chunk = object_ids[start : start + 100]
+            body: dict[str, Any] = {"inputs": [{"id": str(i)} for i in chunk]}
+            if properties:
+                body["properties"] = properties
+            result = self.post(
+                f"/crm/v3/objects/{object_type}/batch/read",
+                json=body,
+            )
+            results.extend(result.get("results", []))
+        return results

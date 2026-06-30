@@ -3,6 +3,11 @@
 import click
 
 from hubspotctl.cli import Context, pass_context
+from hubspotctl.commands._associations import (
+    change_associations,
+    show_associations,
+    show_labels,
+)
 from hubspotctl.commands._filters import parse_filters
 from hubspotctl.commands._notes import format_notes, NOTE_COLUMNS
 from hubspotctl.output import format_output, print_error, print_success, print_info
@@ -345,6 +350,111 @@ def delete_contact(ctx: Context, contact_id: str) -> None:
         print_success(f"Deleted contact: {contact_id}")
     except Exception as e:
         print_error(f"Failed to delete contact: {e}")
+
+
+@contact.command("associate")
+@click.argument("contact_id")
+@click.option(
+    "--company",
+    "-c",
+    "companies",
+    multiple=True,
+    help="Company ID to associate (repeatable)",
+)
+@click.option(
+    "--deal",
+    "-d",
+    "deals",
+    multiple=True,
+    help="Deal ID to associate (repeatable)",
+)
+@click.option(
+    "--label",
+    "-L",
+    "labels",
+    multiple=True,
+    help="Association label name or type ID (repeatable). See 'contact labels'.",
+)
+@pass_context
+def associate_contact(
+    ctx: Context,
+    contact_id: str,
+    companies: tuple[str, ...],
+    deals: tuple[str, ...],
+    labels: tuple[str, ...],
+) -> None:
+    """Associate a contact with companies and/or deals.
+
+    CONTACT_ID must be the numeric record ID, not an email address.
+    """
+    client = ctx.ensure_client()
+    change_associations(
+        client,
+        "contacts",
+        contact_id,
+        [("companies", companies), ("deals", deals)],
+        remove=False,
+        labels=labels,
+    )
+
+
+@contact.command("disassociate")
+@click.argument("contact_id")
+@click.option(
+    "--company",
+    "-c",
+    "companies",
+    multiple=True,
+    help="Company ID to disassociate (repeatable)",
+)
+@click.option(
+    "--deal",
+    "-d",
+    "deals",
+    multiple=True,
+    help="Deal ID to disassociate (repeatable)",
+)
+@pass_context
+def disassociate_contact(
+    ctx: Context,
+    contact_id: str,
+    companies: tuple[str, ...],
+    deals: tuple[str, ...],
+) -> None:
+    """Remove associations between a contact and companies and/or deals.
+
+    CONTACT_ID must be the numeric record ID, not an email address.
+    """
+    client = ctx.ensure_client()
+    change_associations(
+        client,
+        "contacts",
+        contact_id,
+        [("companies", companies), ("deals", deals)],
+        remove=True,
+    )
+
+
+@contact.command("associations")
+@click.argument("contact_id")
+@pass_context
+def contact_associations(ctx: Context, contact_id: str) -> None:
+    """List companies and deals associated with a contact.
+
+    CONTACT_ID must be the numeric record ID, not an email address.
+    """
+    client = ctx.ensure_client()
+    show_associations(
+        client, "contacts", contact_id, ["companies", "deals"], ctx.format
+    )
+
+
+@contact.command("labels")
+@pass_context
+def contact_labels(ctx: Context) -> None:
+    """List association labels available from contacts to companies and deals."""
+    client = ctx.ensure_client()
+    show_labels(client, "contacts", ["companies", "deals"], ctx.format)
 
 
 @contact.command("add-note")

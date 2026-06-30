@@ -102,6 +102,12 @@ hubspotctl deal search "enterprise"
 hubspotctl deal stages
 hubspotctl deal owners
 
+# Associate a deal with a company and contacts
+hubspotctl deal associate 201 --company 301 --contact 101 --contact 102
+
+# List a deal's associated companies and contacts
+hubspotctl deal associations 201
+
 # Add a note to a contact
 hubspotctl contact add-note 12345 --body "Discussed pricing on call"
 
@@ -160,6 +166,10 @@ Contact management commands.
 | `contact create --email <email> [--firstname] [--lastname] [--phone] [--company] [--jobtitle] [--prop key=value]` | Create a new contact |
 | `contact update <contact_id> [--email] [--firstname] [--lastname] [--phone] [--company] [--jobtitle] [--prop key=value]` | Update a contact |
 | `contact delete <contact_id>` | Delete (archive) a contact |
+| `contact associate <contact_id> [--company <id>] [--deal <id>] [--label <name>]` | Associate a contact with companies and/or deals |
+| `contact disassociate <contact_id> [--company <id>] [--deal <id>]` | Remove a contact's associations to companies and/or deals |
+| `contact associations <contact_id>` | List companies and deals associated with a contact |
+| `contact labels` | List association labels available from contacts |
 | `contact add-note <contact_id> --body <text>` | Add a note to a contact |
 | `contact notes <contact_id>` | List notes for a contact |
 | `contact delete-note <note_id>` | Delete a note |
@@ -176,6 +186,10 @@ Company management commands.
 | `company create --name <name> [--domain] [--industry] [--phone] [--owner] [--prop key=value]` | Create a new company |
 | `company update <company_id> [--name] [--domain] [--industry] [--phone] [--owner] [--prop key=value]` | Update a company |
 | `company delete <company_id>` | Delete (archive) a company |
+| `company associate <company_id> [--contact <id>] [--deal <id>] [--label <name>]` | Associate a company with contacts and/or deals |
+| `company disassociate <company_id> [--contact <id>] [--deal <id>]` | Remove a company's associations to contacts and/or deals |
+| `company associations <company_id>` | List contacts and deals associated with a company |
+| `company labels` | List association labels available from companies |
 | `company add-note <company_id> --body <text>` | Add a note to a company |
 | `company notes <company_id>` | List notes for a company |
 | `company delete-note <note_id>` | Delete a note |
@@ -194,9 +208,40 @@ Deal management commands.
 | `deal delete <deal_id>` | Delete (archive) a deal |
 | `deal stages [--pipeline]` | List deal pipelines and stages |
 | `deal owners` | List available deal owners |
+| `deal associate <deal_id> [--company <id>] [--contact <id>] [--label <name>]` | Associate a deal with companies and/or contacts |
+| `deal disassociate <deal_id> [--company <id>] [--contact <id>]` | Remove a deal's associations to companies and/or contacts |
+| `deal associations <deal_id>` | List companies and contacts associated with a deal |
+| `deal labels` | List association labels available from deals |
 | `deal add-note <deal_id> --body <text>` | Add a note to a deal |
 | `deal notes <deal_id>` | List notes for a deal |
 | `deal delete-note <note_id>` | Delete a note |
+
+### Associations
+
+Records can be linked to each other: a deal to its company and contacts, a contact to companies and deals, and so on. The `associate`, `disassociate`, and `associations` commands manage these links. Each `--company`, `--contact`, or `--deal` option takes a record ID and can be repeated to link several records at once.
+
+```bash
+# Link a deal to a company and two contacts
+hubspotctl deal associate 201 --company 301 --contact 101 --contact 102
+
+# List everything linked to a deal
+hubspotctl deal associations 201
+
+# Unlink a contact from the deal
+hubspotctl deal disassociate 201 --contact 102
+```
+
+By default these create the unlabeled HubSpot association. To apply a labeled association (e.g. "Primary", "Decision maker"), pass `--label` / `-L` with the label name or its numeric type ID. Use the `labels` command to see what is available for each object pair.
+
+```bash
+# See which labels exist from deals to companies and contacts
+hubspotctl deal labels
+
+# Link a contact to a company using a label
+hubspotctl contact associate 101 --company 301 --label "Decision maker"
+```
+
+These commands expect numeric record IDs, not email addresses. `disassociate` removes all associations between the two records (it does not target a single label).
 
 ### Properties
 
