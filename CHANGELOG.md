@@ -1,3 +1,12 @@
+## [0.6.0] - 2026-07-23
+
+### 🚀 Features
+
+- *(auth)* Support access token env var
+
+### ⚙️ Miscellaneous Tasks
+
+- Bump version to 0.6.0
 ## [0.5.0] - 2026-06-30
 
 ### 🚀 Features
