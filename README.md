@@ -55,6 +55,15 @@ hubspotctl auth login
 
 Credentials are stored securely in your system keychain.
 
+Alternatively, provide the token through the environment:
+
+```bash
+HUBSPOT_ACCESS_TOKEN=your-token hubspotctl contact list
+```
+
+`HUBSPOT_ACCESS_TOKEN` takes precedence over tokens stored in the system
+keychain. It applies regardless of the selected profile.
+
 To check your authentication status:
 
 ```bash

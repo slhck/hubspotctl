@@ -1,11 +1,13 @@
 """Configuration management for HubSpot CLI."""
 
 import json
+import os
 from pathlib import Path
 
 import keyring
 
 SERVICE_NAME = "hubspotctl"
+ACCESS_TOKEN_ENV_VAR = "HUBSPOT_ACCESS_TOKEN"
 
 
 class Config:
@@ -28,8 +30,10 @@ class Config:
         self.config_file.write_text(json.dumps(config, indent=2))
 
     def get_token(self) -> str | None:
-        """Get the access token from keyring."""
-        return keyring.get_password(SERVICE_NAME, f"{self.profile}:token")
+        """Get the access token from the environment or keyring."""
+        return os.environ.get(ACCESS_TOKEN_ENV_VAR) or keyring.get_password(
+            SERVICE_NAME, f"{self.profile}:token"
+        )
 
     def set_token(self, token: str) -> None:
         """Store the access token in keyring."""
