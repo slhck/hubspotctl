@@ -7,6 +7,9 @@ import httpx
 
 BASE_URL = "https://api.hubapi.com"
 
+# Date-based HubSpot API version for endpoints under /crm/objects/<version>/
+API_VERSION = "2026-09"
+
 DEFAULT_CONTACT_PROPERTIES = [
     "email",
     "firstname",
@@ -25,6 +28,29 @@ DEFAULT_DEAL_PROPERTIES = [
     "closedate",
     "hubspot_owner_id",
 ]
+
+EMAIL_PROPERTIES = [
+    "hs_timestamp",
+    "hs_email_direction",
+    "hs_email_status",
+    "hs_email_subject",
+    "hs_email_text",
+    "hs_email_html",
+    "hs_email_from_email",
+    "hs_email_from_firstname",
+    "hs_email_from_lastname",
+    "hs_email_to_email",
+    "hs_email_cc_email",
+    "hs_email_bcc_email",
+    "hubspot_owner_id",
+]
+
+# HubSpot-defined association type IDs from emails to other objects
+EMAIL_ASSOCIATION_TYPE_IDS = {
+    "contacts": 198,
+    "companies": 186,
+    "deals": 210,
+}
 
 DEFAULT_COMPANY_PROPERTIES = [
     "name",
@@ -351,6 +377,76 @@ class HubSpotClient:
     def delete_note(self, note_id: str) -> None:
         """Delete a note."""
         self.delete(f"/crm/v3/objects/notes/{note_id}")
+
+    # Emails
+    def add_email(
+        self, object_type: str, object_id: str, properties: dict[str, str]
+    ) -> dict:
+        """Log an email and associate it with a CRM object."""
+        return self.post(
+            f"/crm/objects/{API_VERSION}/emails",
+            json={
+                "properties": properties,
+                "associations": [
+                    {
+                        "to": {"id": object_id},
+                        "types": [
+                            {
+                                "associationCategory": "HUBSPOT_DEFINED",
+                                "associationTypeId": EMAIL_ASSOCIATION_TYPE_IDS[
+                                    object_type
+                                ],
+                            }
+                        ],
+                    }
+                ],
+            },
+        )
+
+    def list_emails(self, object_type: str, object_id: str) -> list[dict]:
+        """List emails associated with a CRM object, newest first."""
+        email_ids: list[str] = []
+        params: dict[str, Any] = {"limit": 500}
+        while True:
+            result = self.get(
+                f"/crm/objects/{API_VERSION}/{object_type}/{object_id}"
+                "/associations/emails",
+                params=params,
+            )
+            email_ids.extend(str(r["toObjectId"]) for r in result.get("results", []))
+            after = result.get("paging", {}).get("next", {}).get("after")
+            if not after:
+                break
+            params["after"] = after
+        if not email_ids:
+            return []
+        emails: list[dict] = []
+        for start in range(0, len(email_ids), 100):
+            batch = self.post(
+                f"/crm/objects/{API_VERSION}/emails/batch/read",
+                json={
+                    "inputs": [{"id": eid} for eid in email_ids[start : start + 100]],
+                    "properties": EMAIL_PROPERTIES,
+                    "propertiesWithHistory": [],
+                },
+            )
+            emails.extend(batch.get("results", []))
+        emails.sort(
+            key=lambda e: e.get("properties", {}).get("hs_timestamp") or "",
+            reverse=True,
+        )
+        return emails
+
+    def get_email(self, email_id: str) -> dict:
+        """Get an email by ID."""
+        return self.get(
+            f"/crm/objects/{API_VERSION}/emails/{email_id}",
+            params={"properties": ",".join(EMAIL_PROPERTIES)},
+        )
+
+    def delete_email(self, email_id: str) -> None:
+        """Delete an email."""
+        self.delete(f"/crm/objects/{API_VERSION}/emails/{email_id}")
 
     # Associations
     def associate(

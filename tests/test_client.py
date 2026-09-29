@@ -198,3 +198,37 @@ class TestHubSpotClient:
         client.batch_read("companies", ids)
         # 250 IDs -> three requests of 100, 100, 50
         assert client._client.request.call_count == 3  # type: ignore[attr-defined]
+
+
+class TestEmails:
+    def test_add_email(self, client: HubSpotClient) -> None:
+        _mock_response(client, json={"id": "601"})
+        client.add_email("deals", "201", {"hs_email_subject": "Hi"})
+        method, url = client._client.request.call_args[0]  # type: ignore[attr-defined]
+        body = client._client.request.call_args[1]["json"]  # type: ignore[attr-defined]
+        assert method == "POST"
+        assert url.endswith("/crm/objects/2026-09/emails")
+        assert body["associations"][0]["to"] == {"id": "201"}
+        assert body["associations"][0]["types"][0]["associationTypeId"] == 210
+
+    def test_list_emails_sorted_newest_first(self, client: HubSpotClient) -> None:
+        resp1 = MagicMock()
+        resp1.status_code = 200
+        resp1.json.return_value = {"results": [{"toObjectId": 1}, {"toObjectId": 2}]}
+        resp2 = MagicMock()
+        resp2.status_code = 200
+        resp2.json.return_value = {
+            "results": [
+                {"id": "1", "properties": {"hs_timestamp": "2026-01-01T00:00:00Z"}},
+                {"id": "2", "properties": {"hs_timestamp": "2026-02-01T00:00:00Z"}},
+            ]
+        }
+        client._client.request.side_effect = [resp1, resp2]  # type: ignore[attr-defined]
+        emails = client.list_emails("contacts", "101")
+        assert [e["id"] for e in emails] == ["2", "1"]
+        first_url = client._client.request.call_args_list[0][0][1]  # type: ignore[attr-defined]
+        assert "/crm/objects/2026-09/contacts/101/associations/emails" in first_url
+
+    def test_list_emails_empty(self, client: HubSpotClient) -> None:
+        _mock_response(client, json={"results": []})
+        assert client.list_emails("contacts", "101") == []

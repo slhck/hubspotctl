@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from typing import Any
 from unittest.mock import patch
 
@@ -588,3 +589,109 @@ class TestOutputFormats:
         result = runner.invoke(main, ["--format", "plain", "contact", "list"])
         assert result.exit_code == 0
         assert "John" in result.output
+
+
+class TestEmailCommands:
+    def test_add_email(self, cli: Any) -> None:
+        runner, client, _ = cli
+        client.add_email.return_value = {"id": "601", "properties": {}}
+        result = runner.invoke(
+            main,
+            [
+                "contact",
+                "add-email",
+                "101",
+                "--subject",
+                "Follow-up",
+                "--body",
+                "Hi John",
+                "--from",
+                "me@example.com",
+                "--to",
+                "john@example.com",
+                "--timestamp",
+                "2026-09-01T10:00:00+00:00",
+            ],
+        )
+        assert result.exit_code == 0
+        assert "Logged email 601 on contact 101" in result.output
+        object_type, object_id, props = client.add_email.call_args[0]
+        assert (object_type, object_id) == ("contacts", "101")
+        assert props["hs_email_subject"] == "Follow-up"
+        assert props["hs_email_text"] == "Hi John"
+        assert props["hs_email_direction"] == "EMAIL"
+        assert props["hs_email_status"] == "SENT"
+        assert props["hs_timestamp"] == "1788256800000"
+        headers = json.loads(props["hs_email_headers"])
+        assert headers["from"] == {"email": "me@example.com"}
+        assert headers["to"] == [{"email": "john@example.com"}]
+
+    def test_add_email_html_from_stdin(self, cli: Any) -> None:
+        runner, client, _ = cli
+        client.add_email.return_value = {"id": "602", "properties": {}}
+        result = runner.invoke(
+            main,
+            [
+                "deal",
+                "add-email",
+                "201",
+                "-s",
+                "Offer",
+                "--body-file",
+                "-",
+                "--html",
+                "--direction",
+                "incoming",
+            ],
+            input="<p>Hello</p><p>World</p>",
+        )
+        assert result.exit_code == 0
+        object_type, _, props = client.add_email.call_args[0]
+        assert object_type == "deals"
+        assert props["hs_email_html"] == "<p>Hello</p><p>World</p>"
+        assert props["hs_email_text"] == "Hello\nWorld"
+        assert props["hs_email_direction"] == "INCOMING_EMAIL"
+
+    def test_add_email_requires_body(self, cli: Any) -> None:
+        runner, client, _ = cli
+        result = runner.invoke(main, ["company", "add-email", "301", "-s", "Hi"])
+        assert "Specify exactly one of --body or --body-file" in result.output
+        client.add_email.assert_not_called()
+
+    def test_emails(self, cli: Any) -> None:
+        runner, client, _ = cli
+        client.list_emails.return_value = [
+            {
+                "id": "601",
+                "properties": {
+                    "hs_timestamp": "2026-09-01T10:00:00Z",
+                    "hs_email_direction": "INCOMING_EMAIL",
+                    "hs_email_subject": "Re: Offer",
+                    "hs_email_from_email": "john@example.com",
+                    "hs_email_to_email": "a@example.com;b@example.com",
+                },
+            }
+        ]
+        result = runner.invoke(main, ["--format", "json", "company", "emails", "301"])
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        assert data[0]["direction"] == "incoming"
+        assert data[0]["to"] == "a@example.com, b@example.com"
+        client.list_emails.assert_called_once_with("companies", "301")
+
+    def test_show_email(self, cli: Any) -> None:
+        runner, client, _ = cli
+        client.get_email.return_value = {
+            "id": "601",
+            "properties": {"hs_email_subject": "Offer", "hs_email_html": "<b>Hi</b>"},
+        }
+        result = runner.invoke(main, ["--format", "plain", "deal", "show-email", "601"])
+        assert result.exit_code == 0
+        assert "Subject: Offer" in result.output
+        assert "Hi" in result.output
+
+    def test_delete_email(self, cli: Any) -> None:
+        runner, client, _ = cli
+        result = runner.invoke(main, ["contact", "delete-email", "601", "--yes"])
+        assert result.exit_code == 0
+        client.delete_email.assert_called_once_with("601")

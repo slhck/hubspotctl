@@ -43,6 +43,7 @@ Required scopes:
 - `crm.objects.deals.read`, `crm.objects.deals.write`
 - `crm.objects.deals.sensitive.read`, `crm.objects.deals.highly_sensitive.read`
 - `crm.objects.owners.read`
+- `sales-email-read` (to read the content of logged emails)
 - `crm.schemas.contacts.read`, `crm.schemas.contacts.write`
 - `crm.schemas.companies.read`, `crm.schemas.companies.write`
 - `crm.schemas.deals.read`, `crm.schemas.deals.write`
@@ -186,6 +187,10 @@ Contact management commands.
 | `contact add-note <contact_id> --body <text>` | Add a note to a contact |
 | `contact notes <contact_id>` | List notes for a contact |
 | `contact delete-note <note_id>` | Delete a note |
+| `contact add-email <contact_id> --subject <text> (--body <text> | --body-file <path>) [--html] [--direction] [--status] [--from] [--to] [--cc] [--bcc] [--timestamp] [--owner]` | Log an email on a contact |
+| `contact emails <contact_id>` | List emails logged on a contact, newest first |
+| `contact show-email <email_id>` | Show an email, including its body |
+| `contact delete-email <email_id>` | Delete a logged email |
 
 ### `hubspotctl company`
 
@@ -207,6 +212,10 @@ Company management commands.
 | `company add-note <company_id> --body <text>` | Add a note to a company |
 | `company notes <company_id>` | List notes for a company |
 | `company delete-note <note_id>` | Delete a note |
+| `company add-email <company_id> --subject <text> (--body <text> | --body-file <path>) [--html] [--direction] [--status] [--from] [--to] [--cc] [--bcc] [--timestamp] [--owner]` | Log an email on a company |
+| `company emails <company_id>` | List emails logged on a company, newest first |
+| `company show-email <email_id>` | Show an email, including its body |
+| `company delete-email <email_id>` | Delete a logged email |
 
 ### `hubspotctl deal`
 
@@ -230,6 +239,10 @@ Deal management commands.
 | `deal add-note <deal_id> --body <text>` | Add a note to a deal |
 | `deal notes <deal_id>` | List notes for a deal |
 | `deal delete-note <note_id>` | Delete a note |
+| `deal add-email <deal_id> --subject <text> (--body <text> | --body-file <path>) [--html] [--direction] [--status] [--from] [--to] [--cc] [--bcc] [--timestamp] [--owner]` | Log an email on a deal |
+| `deal emails <deal_id>` | List emails logged on a deal, newest first |
+| `deal show-email <email_id>` | Show an email, including its body |
+| `deal delete-email <email_id>` | Delete a logged email |
 
 ### Associations
 
@@ -257,6 +270,29 @@ hubspotctl contact associate 101 --company 301 --label "Decision maker"
 ```
 
 These commands expect numeric record IDs, not email addresses. `disassociate` removes all associations between the two records (it does not target a single label).
+
+### Emails
+
+Sales emails can be logged on contacts, companies, and deals, and read back from them. HubSpot's API only records emails on a record's timeline; it cannot send them. Send the email from your mail client and log it here.
+
+```bash
+# List emails on a contact, newest first
+hubspotctl contact emails 101
+
+# Read one email in full
+hubspotctl -f plain contact show-email 30399871360
+
+# Log an outgoing email
+hubspotctl contact add-email 101 --subject "Follow-up" \
+  --from me@example.com --to john@example.com --body "Hi John, ..."
+
+# Log a reply received yesterday, with the body read from a file
+hubspotctl deal add-email 201 --direction incoming --timestamp 2026-09-28T14:30 \
+  --subject "Re: Offer" --from john@example.com --to me@example.com \
+  --body-file reply.txt
+```
+
+`--timestamp` takes an ISO 8601 date or datetime; values without a time zone use local time. Use `--html` if the body is HTML. Reading email bodies requires the `sales-email-read` scope.
 
 ### Merging records
 

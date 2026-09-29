@@ -8,6 +8,7 @@ from hubspotctl.commands._associations import (
     show_associations,
     show_labels,
 )
+from hubspotctl.commands._emails import register_email_commands
 from hubspotctl.commands._filters import parse_filters
 from hubspotctl.commands._merge import merge_records
 from hubspotctl.commands._notes import format_notes, NOTE_COLUMNS
@@ -526,3 +527,6 @@ def delete_note(ctx: Context, note_id: str) -> None:
         print_success(f"Deleted note: {note_id}")
     except Exception as e:
         print_error(f"Failed to delete note: {e}")
+
+
+register_email_commands(contact, "contacts")
