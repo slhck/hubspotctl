@@ -7,7 +7,7 @@ import httpx
 
 BASE_URL = "https://api.hubapi.com"
 
-# Date-based HubSpot API version for endpoints under /crm/objects/<version>/
+# Date-based HubSpot API version used in all endpoint paths
 API_VERSION = "2026-09"
 
 DEFAULT_CONTACT_PROPERTIES = [
@@ -122,7 +122,7 @@ class HubSpotClient:
     # Account
     def get_me(self) -> dict:
         """Get account info to verify token."""
-        return self.get("/account-info/v3/details")
+        return self.get(f"/account-info/{API_VERSION}/details")
 
     # Contacts
     def list_contacts(
@@ -139,13 +139,15 @@ class HubSpotClient:
         }
         if after:
             params["after"] = after
-        return self.get("/crm/v3/objects/contacts", params=params)
+        return self.get(f"/crm/objects/{API_VERSION}/contacts", params=params)
 
     def get_contact(self, contact_id: str, properties: list[str] | None = None) -> dict:
         """Get a contact by ID or email."""
         props = list(dict.fromkeys(DEFAULT_CONTACT_PROPERTIES + (properties or [])))
         params = {"properties": ",".join(props)}
-        return self.get(f"/crm/v3/objects/contacts/{contact_id}", params=params)
+        return self.get(
+            f"/crm/objects/{API_VERSION}/contacts/{contact_id}", params=params
+        )
 
     def get_contact_by_email(
         self, email: str, properties: list[str] | None = None
@@ -156,22 +158,24 @@ class HubSpotClient:
             "properties": ",".join(props),
             "idProperty": "email",
         }
-        return self.get(f"/crm/v3/objects/contacts/{email}", params=params)
+        return self.get(f"/crm/objects/{API_VERSION}/contacts/{email}", params=params)
 
     def create_contact(self, properties: dict[str, str]) -> dict:
         """Create a new contact."""
-        return self.post("/crm/v3/objects/contacts", json={"properties": properties})
+        return self.post(
+            f"/crm/objects/{API_VERSION}/contacts", json={"properties": properties}
+        )
 
     def update_contact(self, contact_id: str, properties: dict[str, str]) -> dict:
         """Update a contact."""
         return self.patch(
-            f"/crm/v3/objects/contacts/{contact_id}",
+            f"/crm/objects/{API_VERSION}/contacts/{contact_id}",
             json={"properties": properties},
         )
 
     def delete_contact(self, contact_id: str) -> None:
         """Delete (archive) a contact."""
-        self.delete(f"/crm/v3/objects/contacts/{contact_id}")
+        self.delete(f"/crm/objects/{API_VERSION}/contacts/{contact_id}")
 
     def search_contacts(
         self,
@@ -193,7 +197,7 @@ class HubSpotClient:
             body["filterGroups"] = [{"filters": filters}]
         if after:
             body["after"] = after
-        return self.post("/crm/v3/objects/contacts/search", json=body)
+        return self.post(f"/crm/objects/{API_VERSION}/contacts/search", json=body)
 
     # Deals
     def list_deals(
@@ -210,28 +214,30 @@ class HubSpotClient:
         }
         if after:
             params["after"] = after
-        return self.get("/crm/v3/objects/deals", params=params)
+        return self.get(f"/crm/objects/{API_VERSION}/deals", params=params)
 
     def get_deal(self, deal_id: str, properties: list[str] | None = None) -> dict:
         """Get a deal by ID."""
         props = list(dict.fromkeys(DEFAULT_DEAL_PROPERTIES + (properties or [])))
         params = {"properties": ",".join(props)}
-        return self.get(f"/crm/v3/objects/deals/{deal_id}", params=params)
+        return self.get(f"/crm/objects/{API_VERSION}/deals/{deal_id}", params=params)
 
     def create_deal(self, properties: dict[str, str]) -> dict:
         """Create a new deal."""
-        return self.post("/crm/v3/objects/deals", json={"properties": properties})
+        return self.post(
+            f"/crm/objects/{API_VERSION}/deals", json={"properties": properties}
+        )
 
     def update_deal(self, deal_id: str, properties: dict[str, str]) -> dict:
         """Update a deal."""
         return self.patch(
-            f"/crm/v3/objects/deals/{deal_id}",
+            f"/crm/objects/{API_VERSION}/deals/{deal_id}",
             json={"properties": properties},
         )
 
     def delete_deal(self, deal_id: str) -> None:
         """Delete (archive) a deal."""
-        self.delete(f"/crm/v3/objects/deals/{deal_id}")
+        self.delete(f"/crm/objects/{API_VERSION}/deals/{deal_id}")
 
     def search_deals(
         self,
@@ -253,7 +259,7 @@ class HubSpotClient:
             body["filterGroups"] = [{"filters": filters}]
         if after:
             body["after"] = after
-        return self.post("/crm/v3/objects/deals/search", json=body)
+        return self.post(f"/crm/objects/{API_VERSION}/deals/search", json=body)
 
     # Companies
     def list_companies(
@@ -270,28 +276,32 @@ class HubSpotClient:
         }
         if after:
             params["after"] = after
-        return self.get("/crm/v3/objects/companies", params=params)
+        return self.get(f"/crm/objects/{API_VERSION}/companies", params=params)
 
     def get_company(self, company_id: str, properties: list[str] | None = None) -> dict:
         """Get a company by ID."""
         props = list(dict.fromkeys(DEFAULT_COMPANY_PROPERTIES + (properties or [])))
         params = {"properties": ",".join(props)}
-        return self.get(f"/crm/v3/objects/companies/{company_id}", params=params)
+        return self.get(
+            f"/crm/objects/{API_VERSION}/companies/{company_id}", params=params
+        )
 
     def create_company(self, properties: dict[str, str]) -> dict:
         """Create a new company."""
-        return self.post("/crm/v3/objects/companies", json={"properties": properties})
+        return self.post(
+            f"/crm/objects/{API_VERSION}/companies", json={"properties": properties}
+        )
 
     def update_company(self, company_id: str, properties: dict[str, str]) -> dict:
         """Update a company."""
         return self.patch(
-            f"/crm/v3/objects/companies/{company_id}",
+            f"/crm/objects/{API_VERSION}/companies/{company_id}",
             json={"properties": properties},
         )
 
     def delete_company(self, company_id: str) -> None:
         """Delete (archive) a company."""
-        self.delete(f"/crm/v3/objects/companies/{company_id}")
+        self.delete(f"/crm/objects/{API_VERSION}/companies/{company_id}")
 
     def search_companies(
         self,
@@ -313,30 +323,30 @@ class HubSpotClient:
             body["filterGroups"] = [{"filters": filters}]
         if after:
             body["after"] = after
-        return self.post("/crm/v3/objects/companies/search", json=body)
+        return self.post(f"/crm/objects/{API_VERSION}/companies/search", json=body)
 
     # Pipelines
     def get_deal_pipelines(self) -> list[dict]:
         """Get all deal pipelines."""
-        result = self.get("/crm/v3/pipelines/deals")
+        result = self.get(f"/crm/pipelines/{API_VERSION}/deals")
         return result.get("results", [])
 
     def get_pipeline_stages(self, pipeline_id: str) -> list[dict]:
         """Get stages for a pipeline."""
-        result = self.get(f"/crm/v3/pipelines/deals/{pipeline_id}/stages")
+        result = self.get(f"/crm/pipelines/{API_VERSION}/deals/{pipeline_id}/stages")
         return result.get("results", [])
 
     # Owners
     def list_owners(self, limit: int = 100) -> list[dict]:
         """List owners (users)."""
-        result = self.get("/crm/v3/owners", params={"limit": limit})
+        result = self.get(f"/crm/owners/{API_VERSION}", params={"limit": limit})
         return result.get("results", [])
 
     # Notes
     def create_note(self, body: str) -> dict:
         """Create a note object."""
         return self.post(
-            "/crm/v3/objects/notes",
+            f"/crm/objects/{API_VERSION}/notes",
             json={
                 "properties": {
                     "hs_note_body": body,
@@ -348,7 +358,7 @@ class HubSpotClient:
     def associate_note(self, note_id: str, object_type: str, object_id: str) -> None:
         """Associate a note with a CRM object using v4 default associations."""
         self.put(
-            f"/crm/v4/objects/note/{note_id}/associations/default/{object_type}/{object_id}",
+            f"/crm/objects/{API_VERSION}/notes/{note_id}/associations/default/{object_type}/{object_id}",
         )
 
     def add_note(self, object_type: str, object_id: str, body: str) -> dict:
@@ -360,13 +370,13 @@ class HubSpotClient:
     def list_notes(self, object_type: str, object_id: str) -> list[dict]:
         """List notes associated with a CRM object."""
         result = self.get(
-            f"/crm/v4/objects/{object_type}/{object_id}/associations/notes",
+            f"/crm/objects/{API_VERSION}/{object_type}/{object_id}/associations/notes",
         )
         note_ids = [r["toObjectId"] for r in result.get("results", [])]
         if not note_ids:
             return []
         batch = self.post(
-            "/crm/v3/objects/notes/batch/read",
+            f"/crm/objects/{API_VERSION}/notes/batch/read",
             json={
                 "inputs": [{"id": nid} for nid in note_ids],
                 "properties": ["hs_note_body", "hs_timestamp"],
@@ -376,7 +386,7 @@ class HubSpotClient:
 
     def delete_note(self, note_id: str) -> None:
         """Delete a note."""
-        self.delete(f"/crm/v3/objects/notes/{note_id}")
+        self.delete(f"/crm/objects/{API_VERSION}/notes/{note_id}")
 
     # Emails
     def add_email(
@@ -465,13 +475,13 @@ class HubSpotClient:
         """
         if association_types:
             self.put(
-                f"/crm/v4/objects/{from_object_type}/{from_object_id}"
+                f"/crm/objects/{API_VERSION}/{from_object_type}/{from_object_id}"
                 f"/associations/{to_object_type}/{to_object_id}",
                 json=association_types,
             )
         else:
             self.put(
-                f"/crm/v4/objects/{from_object_type}/{from_object_id}"
+                f"/crm/objects/{API_VERSION}/{from_object_type}/{from_object_id}"
                 f"/associations/default/{to_object_type}/{to_object_id}",
             )
 
@@ -480,7 +490,7 @@ class HubSpotClient:
     ) -> list[dict]:
         """List association labels/types defined between two object types (v4)."""
         result = self.get(
-            f"/crm/v4/associations/{from_object_type}/{to_object_type}/labels",
+            f"/crm/associations/{API_VERSION}/{from_object_type}/{to_object_type}/labels",
         )
         return result.get("results", [])
 
@@ -493,7 +503,7 @@ class HubSpotClient:
     ) -> None:
         """Remove all associations between two CRM objects (v4)."""
         self.delete(
-            f"/crm/v4/objects/{from_object_type}/{from_object_id}"
+            f"/crm/objects/{API_VERSION}/{from_object_type}/{from_object_id}"
             f"/associations/{to_object_type}/{to_object_id}",
         )
 
@@ -502,7 +512,7 @@ class HubSpotClient:
     ) -> list[dict]:
         """List objects of to_object_type associated with a CRM object (v4)."""
         result = self.get(
-            f"/crm/v4/objects/{object_type}/{object_id}/associations/{to_object_type}",
+            f"/crm/objects/{API_VERSION}/{object_type}/{object_id}/associations/{to_object_type}",
         )
         return result.get("results", [])
 
@@ -515,7 +525,7 @@ class HubSpotClient:
         and deals.
         """
         return self.post(
-            f"/crm/v3/objects/{object_type}/merge",
+            f"/crm/objects/{API_VERSION}/{object_type}/merge",
             json={"primaryObjectId": primary_id, "objectIdToMerge": merge_id},
         )
 
@@ -537,7 +547,7 @@ class HubSpotClient:
             if properties:
                 body["properties"] = properties
             result = self.post(
-                f"/crm/v3/objects/{object_type}/batch/read",
+                f"/crm/objects/{API_VERSION}/{object_type}/batch/read",
                 json=body,
             )
             results.extend(result.get("results", []))

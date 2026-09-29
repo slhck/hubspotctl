@@ -98,7 +98,7 @@ class TestHubSpotClient:
         client.associate_note("10", "contacts", "101")
         call_args = client._client.request.call_args  # type: ignore[attr-defined]
         assert call_args[0][0] == "PUT"
-        assert "/note/10/associations/default/contacts/101" in call_args[0][1]
+        assert "/notes/10/associations/default/contacts/101" in call_args[0][1]
 
     def test_list_notes(self, client: HubSpotClient) -> None:
         # First call returns association IDs, second call returns note details
@@ -163,7 +163,7 @@ class TestHubSpotClient:
         labels = client.get_association_labels("deals", "companies")
         assert labels[0]["label"] == "X"
         call_args = client._client.request.call_args  # type: ignore[attr-defined]
-        assert "/crm/v4/associations/deals/companies/labels" in call_args[0][1]
+        assert "/crm/associations/2026-09/deals/companies/labels" in call_args[0][1]
 
     def test_list_associations(self, client: HubSpotClient) -> None:
         _mock_response(client, json={"results": [{"toObjectId": "301"}]})
@@ -176,7 +176,7 @@ class TestHubSpotClient:
         assert result["id"] == "999"
         call_args = client._client.request.call_args  # type: ignore[attr-defined]
         assert call_args[0][0] == "POST"
-        assert "/crm/v3/objects/contacts/merge" in call_args[0][1]
+        assert "/crm/objects/2026-09/contacts/merge" in call_args[0][1]
         assert call_args.kwargs["json"] == {
             "primaryObjectId": "101",
             "objectIdToMerge": "102",
