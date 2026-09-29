@@ -1,3 +1,16 @@
+## [0.7.0] - 2026-09-29
+
+### 🚀 Features
+
+- *(commands)* Add email commands for contacts, companies, deals
+
+### 🚜 Refactor
+
+- *(client)* Move API calls to 2026-09 version
+
+### ⚙️ Miscellaneous Tasks
+
+- Bump version to 0.7.0
 ## [0.6.0] - 2026-07-23
 
 ### 🚀 Features
