@@ -11,6 +11,10 @@ from hubspotctl.commands._associations import (
 from hubspotctl.commands._emails import register_email_commands
 from hubspotctl.commands._filters import parse_filters
 from hubspotctl.commands._merge import merge_records
+from hubspotctl.commands._properties import (
+    print_missing_properties_hint,
+    register_property_commands,
+)
 from hubspotctl.commands._notes import format_notes, NOTE_COLUMNS
 from hubspotctl.output import format_output, print_error, print_success, print_info
 
@@ -265,6 +269,7 @@ def create_deal(
         print_success(f"Created deal: {d['id']}")
     except Exception as e:
         print_error(f"Failed to create deal: {e}")
+        print_missing_properties_hint(e, "deal")
 
 
 @deal.command("update")
@@ -588,3 +593,4 @@ def delete_note(ctx: Context, note_id: str) -> None:
 
 
 register_email_commands(deal, "deals")
+register_property_commands(deal, "deals")

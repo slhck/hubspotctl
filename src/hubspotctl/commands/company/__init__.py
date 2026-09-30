@@ -11,6 +11,10 @@ from hubspotctl.commands._associations import (
 from hubspotctl.commands._emails import register_email_commands
 from hubspotctl.commands._filters import parse_filters
 from hubspotctl.commands._merge import merge_records
+from hubspotctl.commands._properties import (
+    print_missing_properties_hint,
+    register_property_commands,
+)
 from hubspotctl.commands._notes import format_notes, NOTE_COLUMNS
 from hubspotctl.output import format_output, print_error, print_info, print_success
 
@@ -268,6 +272,7 @@ def create_company(
         print_success(f"Created company: {c['id']}")
     except Exception as e:
         print_error(f"Failed to create company: {e}")
+        print_missing_properties_hint(e, "company")
 
 
 @company.command("update")
@@ -507,3 +512,4 @@ def delete_note(ctx: Context, note_id: str) -> None:
 
 
 register_email_commands(company, "companies")
+register_property_commands(company, "companies")

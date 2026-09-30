@@ -313,6 +313,19 @@ This is destructive (the second record is archived), so it asks for confirmation
 
 Each object type has a set of default properties that are fetched and displayed. You can request additional properties with the `--property` / `-P` flag on `list`, `show`, and `search` commands. You can also set arbitrary custom properties when creating or updating objects with `--prop key=value`.
 
+To see which properties exist and which values an enumeration accepts, use `properties` and `property`:
+
+```bash
+hubspotctl contact properties                  # all visible properties
+hubspotctl contact properties --custom         # only your custom properties
+hubspotctl contact properties --search legal   # match name or label
+hubspotctl contact property hs_legal_basis     # details and allowed values
+```
+
+Values must match exactly. Some options differ from their labels only in punctuation, such as the en dash in `Legitimate interest – prospect/lead`.
+
+HubSpot does not mark properties as required in their definitions. Your account may still require some when creating a record (for example `hs_legal_basis` on contacts when GDPR features are on). In that case the create command prints HubSpot's validation error, names the missing property, and points to `property` for its allowed values. All commands show the error message HubSpot returns, not only the HTTP status.
+
 You can filter results by property values using `--filter` / `-F` on `list` and `search` commands. Supported operators: `=`, `!=`, `<`, `>`, `<=`, `>=`, `~` (contains token). Multiple filters are combined with AND logic. Filter properties are automatically included in the output.
 
 **Contact properties** (default):

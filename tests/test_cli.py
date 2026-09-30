@@ -9,6 +9,7 @@ from unittest.mock import patch
 from click.testing import CliRunner
 
 from hubspotctl.cli import main
+from hubspotctl.client import HubSpotAPIError
 
 
 class TestCLI:
@@ -695,3 +696,71 @@ class TestEmailCommands:
         result = runner.invoke(main, ["contact", "delete-email", "601", "--yes"])
         assert result.exit_code == 0
         client.delete_email.assert_called_once_with("601")
+
+
+class TestPropertyCommands:
+    PROPERTIES = [
+        {
+            "name": "hs_legal_basis",
+            "label": "Legal basis for processing contact's data",
+            "type": "enumeration",
+            "fieldType": "checkbox",
+            "groupName": "emailinformation",
+            "hubspotDefined": True,
+            "options": [
+                {"value": "Legitimate interest – prospect/lead", "label": "Lead"},
+                {"value": "Retired", "label": "Retired", "hidden": True},
+            ],
+        },
+        {
+            "name": "newsletter",
+            "label": "Newsletter",
+            "type": "enumeration",
+            "groupName": "contactinformation",
+            "hubspotDefined": False,
+        },
+        {"name": "hs_secret", "label": "Secret", "hidden": True},
+    ]
+
+    def test_properties_filters(self, cli: Any) -> None:
+        runner, client, _ = cli
+        client.list_properties.return_value = self.PROPERTIES
+        result = runner.invoke(
+            main, ["--format", "json", "contact", "properties", "--custom"]
+        )
+        assert result.exit_code == 0
+        assert [p["name"] for p in json.loads(result.output)] == ["newsletter"]
+        client.list_properties.assert_called_once_with("contacts")
+
+    def test_properties_search_hides_hidden(self, cli: Any) -> None:
+        runner, client, _ = cli
+        client.list_properties.return_value = self.PROPERTIES
+        result = runner.invoke(
+            main, ["--format", "json", "deal", "properties", "--search", "s"]
+        )
+        names = [p["name"] for p in json.loads(result.output)]
+        assert names == ["hs_legal_basis", "newsletter"]
+
+    def test_property_shows_visible_options(self, cli: Any) -> None:
+        runner, client, _ = cli
+        client.get_property.return_value = self.PROPERTIES[0]
+        result = runner.invoke(
+            main, ["--format", "json", "contact", "property", "hs_legal_basis"]
+        )
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        assert data["options"] == [
+            {"value": "Legitimate interest – prospect/lead", "label": "Lead"}
+        ]
+        client.get_property.assert_called_once_with("contacts", "hs_legal_basis")
+
+    def test_create_hints_missing_property(self, cli: Any) -> None:
+        runner, client, _ = cli
+        error = HubSpotAPIError.__new__(HubSpotAPIError)
+        Exception.__init__(error, "HTTP 400 VALIDATION_ERROR: missing")
+        error.missing_properties = ["hs_legal_basis"]
+        client.create_contact.side_effect = error
+        result = runner.invoke(main, ["contact", "create", "--email", "a@b.com"])
+        output = " ".join(result.output.split())  # Rich wraps at 80 columns
+        assert "Failed to create contact: HTTP 400 VALIDATION_ERROR" in output
+        assert "hubspotctl contact property hs_legal_basis" in output
