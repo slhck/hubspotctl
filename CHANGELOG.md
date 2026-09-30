@@ -1,3 +1,13 @@
+## [0.8.0] - 2026-09-30
+
+### 🚀 Features
+
+- *(client)* Show HubSpot error messages
+- *(commands)* Add properties and property commands
+
+### ⚙️ Miscellaneous Tasks
+
+- Bump version to 0.8.0
 ## [0.7.0] - 2026-09-29
 
 ### 🚀 Features
