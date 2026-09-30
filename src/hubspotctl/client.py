@@ -1,5 +1,6 @@
 """HubSpot CRM API client."""
 
+import re
 import time
 from typing import Any
 
@@ -64,6 +65,45 @@ DEFAULT_COMPANY_PROPERTIES = [
 ]
 
 
+class HubSpotAPIError(httpx.HTTPStatusError):
+    """HTTP error from the HubSpot API, carrying the message HubSpot returned."""
+
+    def __init__(self, error: httpx.HTTPStatusError) -> None:
+        response = error.response
+        try:
+            body = response.json()
+        except ValueError:
+            body = None
+        if not isinstance(body, dict):
+            body = {}
+
+        # Category such as VALIDATION_ERROR or MISSING_SCOPES
+        self.category: str = body.get("category") or ""
+        messages = [body.get("message") or ""]
+        for detail in body.get("errors") or []:
+            text = detail.get("message") if isinstance(detail, dict) else None
+            if text and text not in messages[0]:
+                messages.append(text)
+        self.detail: str = "; ".join(m for m in messages if m)
+
+        # Properties HubSpot requires but the request did not set
+        match = re.search(
+            r"required properties were missing: \[([^\]]*)\]", self.detail
+        )
+        self.missing_properties: list[str] = (
+            [name.strip() for name in match.group(1).split(",") if name.strip()]
+            if match
+            else []
+        )
+
+        if self.detail:
+            prefix = f"HTTP {response.status_code} {self.category}".strip()
+            message = f"{prefix}: {self.detail}"
+        else:
+            message = str(error)
+        super().__init__(message, request=error.request, response=response)
+
+
 class HubSpotClient:
     """HTTP client for HubSpot CRM API v3."""
 
@@ -87,7 +127,10 @@ class HubSpotClient:
         """Make an authenticated request to HubSpot API."""
         url = f"{BASE_URL}{path}"
         response = self._client.request(method, url, params=params, json=json)
-        response.raise_for_status()
+        try:
+            response.raise_for_status()
+        except httpx.HTTPStatusError as e:
+            raise HubSpotAPIError(e) from e
 
         if response.status_code == 204:
             return None
@@ -324,6 +367,16 @@ class HubSpotClient:
         if after:
             body["after"] = after
         return self.post(f"/crm/objects/{API_VERSION}/companies/search", json=body)
+
+    # Properties
+    def list_properties(self, object_type: str) -> list[dict]:
+        """List the property definitions of an object type."""
+        result = self.get(f"/crm/properties/{API_VERSION}/{object_type}")
+        return result.get("results", [])
+
+    def get_property(self, object_type: str, name: str) -> dict:
+        """Get a single property definition, including its options."""
+        return self.get(f"/crm/properties/{API_VERSION}/{object_type}/{name}")
 
     # Pipelines
     def get_deal_pipelines(self) -> list[dict]:

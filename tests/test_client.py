@@ -8,7 +8,7 @@ from unittest.mock import MagicMock
 import httpx
 import pytest
 
-from hubspotctl.client import HubSpotClient
+from hubspotctl.client import HubSpotAPIError, HubSpotClient
 
 
 @pytest.fixture
@@ -232,3 +232,56 @@ class TestEmails:
     def test_list_emails_empty(self, client: HubSpotClient) -> None:
         _mock_response(client, json={"results": []})
         assert client.list_emails("contacts", "101") == []
+
+
+class TestHubSpotAPIError:
+    def _error(self, client: HubSpotClient, status: int, body: Any) -> MagicMock:
+        resp = _mock_response(client, status=status, json=body)
+        resp.raise_for_status.side_effect = httpx.HTTPStatusError(
+            "Client error", request=MagicMock(), response=resp
+        )
+        return resp
+
+    def test_includes_hubspot_message(self, client: HubSpotClient) -> None:
+        self._error(
+            client,
+            400,
+            {
+                "status": "error",
+                "message": "Cannot create object with type: CONTACT. The following "
+                "required properties were missing: [hs_legal_basis, foo]",
+                "category": "VALIDATION_ERROR",
+            },
+        )
+        with pytest.raises(HubSpotAPIError) as exc_info:
+            client.create_contact({"email": "a@b.com"})
+        error = exc_info.value
+        assert str(error).startswith("HTTP 400 VALIDATION_ERROR: Cannot create")
+        assert error.category == "VALIDATION_ERROR"
+        assert error.missing_properties == ["hs_legal_basis", "foo"]
+
+    def test_includes_nested_errors(self, client: HubSpotClient) -> None:
+        self._error(
+            client,
+            400,
+            {
+                "message": "Property values were not valid",
+                "category": "VALIDATION_ERROR",
+                "errors": [{"message": "'x' is not a valid option for 'newsletter'"}],
+            },
+        )
+        with pytest.raises(HubSpotAPIError, match="not a valid option"):
+            client.update_contact("1", {"newsletter": "x"})
+
+    def test_falls_back_without_json_body(self, client: HubSpotClient) -> None:
+        resp = self._error(client, 502, None)
+        resp.json.side_effect = ValueError("not JSON")
+        with pytest.raises(HubSpotAPIError, match="Client error") as exc_info:
+            client.list_contacts()
+        assert exc_info.value.missing_properties == []
+
+    def test_get_property_path(self, client: HubSpotClient) -> None:
+        _mock_response(client, json={"name": "hs_legal_basis"})
+        client.get_property("contacts", "hs_legal_basis")
+        url = client._client.request.call_args[0][1]  # type: ignore[attr-defined]
+        assert url.endswith("/crm/properties/2026-09/contacts/hs_legal_basis")
