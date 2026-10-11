@@ -1,3 +1,13 @@
+## [0.8.1] - 2026-10-11
+
+### 🐛 Bug Fixes
+
+- *(deps)* Update dependencies with known vulnerabilities
+
+### ⚙️ Miscellaneous Tasks
+
+- Test on Python 3.15
+- Bump version to 0.8.1
 ## [0.8.0] - 2026-09-30
 
 ### 🚀 Features
